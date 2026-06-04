@@ -1,0 +1,111 @@
+name: Windows .NET ML-DSA Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/windows-dotnet-mldsa-evidence.yml"
+      - "platforms/dotnet/**"
+      - "docs/evidence/**"
+      - "vectors/**"
+  pull_request:
+    paths:
+      - ".github/workflows/windows-dotnet-mldsa-evidence.yml"
+      - "platforms/dotnet/**"
+      - "docs/evidence/**"
+      - "vectors/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-dotnet-mldsa-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-dotnet-mldsa:
+    name: Windows .NET ML-DSA evidence
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: platforms/dotnet
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore PQAuthKit.Tests.csproj
+
+      - name: Test
+        run: dotnet test PQAuthKit.Tests.csproj --no-restore --configuration Release
+
+      - name: Emit Windows ML-DSA evidence summary
+        run: |
+          New-Item -ItemType Directory -Force -Path evidence | Out-Null
+
+          $dotnetInfo = dotnet --info | Out-String
+          $summary = [ordered]@{
+            schema = "pqauth-kit-windows-dotnet-mldsa-ci-evidence-v1"
+            generatedAtUtc = (Get-Date).ToUniversalTime().ToString("o")
+            providerId = "dotnet.system-security-cryptography.mldsa65"
+            runner = [ordered]@{
+              os = $env:RUNNER_OS
+              architecture = $env:RUNNER_ARCH
+              imageOS = $env:ImageOS
+              imageVersion = $env:ImageVersion
+              githubRunId = $env:GITHUB_RUN_ID
+              githubSha = $env:GITHUB_SHA
+            }
+            dotnetInfo = $dotnetInfo
+            mldsaIsSupported = $false
+            conformanceVectorGenerated = $false
+            conformanceVectorArtifact = $null
+            unsupportedReason = $null
+          }
+
+          $vectorPath = "evidence/dotnet-mldsa-conformance-vector.json"
+          $commandOutput = & dotnet run --no-build --project PQAuthKit.Tests.csproj --configuration Release -- --emit-conformance-vector 2>&1
+
+          if ($LASTEXITCODE -eq 0) {
+            $commandOutput | Out-File -FilePath $vectorPath -Encoding utf8
+            $vector = Get-Content -Raw -Path $vectorPath | ConvertFrom-Json
+            $summary["mldsaIsSupported"] = $true
+            $summary["conformanceVectorGenerated"] = $true
+            $summary["conformanceVectorArtifact"] = "dotnet-mldsa-conformance-vector.json"
+            $summary["algorithm"] = $vector.algorithm
+            $summary["operations"] = $vector.operations
+          } else {
+            $errorText = $commandOutput | Out-String
+            $summary["unsupportedReason"] = $errorText.Trim()
+
+            if ($errorText -notmatch "ML-DSA is not supported") {
+              throw "Unexpected ML-DSA evidence generation failure: $errorText"
+            }
+
+            Write-Warning "ML-DSA is not supported by this Windows/.NET runner; production readiness remains pending."
+          }
+
+          $summary | ConvertTo-Json -Depth 20 | Out-File -FilePath evidence/dotnet-mldsa-evidence-summary.json -Encoding utf8
+
+      - name: Upload Windows ML-DSA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-dotnet-mldsa-evidence
+          path: platforms/dotnet/evidence/
+          if-no-files-found: error
+          retention-days: 30

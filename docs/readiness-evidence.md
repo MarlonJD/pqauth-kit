@@ -16,7 +16,7 @@ not yet contain an audited pure-language ML-DSA fallback implementation.
 | iOS | CryptoKit/Secure Enclave ML-DSA allowed on OS 26+ when runtime-capable and lifecycle-compatible | Pending release-device provider vector | Swift fallback blocked until audit, benchmarks, vectors, and side-channel review pass | `cd platforms/swift && swift test` |
 | macOS | CryptoKit/Secure Enclave ML-DSA allowed on OS 26+ when runtime-capable and lifecycle-compatible | `vectors/mldsa-conformance-v1.json` contains a CryptoKit ML-DSA-65 keygen/sign/verify/import/export fixture generated on macOS 26 | Swift fallback blocked until audit, benchmarks, vectors, and side-channel review pass; local benchmark and package-boundary side-channel notes are in `docs/evidence/` | `cd platforms/swift && swift test` |
 | Android | No documented app-facing ML-DSA provider at this checkpoint; Android 17 PQC APK signing is distribution identity only | Pending; no provider-backed app-facing vector exists | Kotlin fallback blocked until audit, benchmarks, vectors, and side-channel review pass | `cd platforms/android && ./gradlew test` |
-| Windows | .NET `System.Security.Cryptography.MLDsa` allowed when `IsSupported` is true | Pending runtime-supported .NET vector; this macOS .NET runtime exposes the API but reports `IsSupported=false` | Managed C# fallback blocked until audit, benchmarks, vectors, and side-channel review pass | `cd platforms/dotnet && DOTNET_CLI_HOME=/private/tmp dotnet test` |
+| Windows | .NET `System.Security.Cryptography.MLDsa` allowed when `IsSupported` is true | Pending runtime-supported .NET vector; `.github/workflows/windows-dotnet-mldsa-evidence.yml` records the Windows runner support status and uploads conformance evidence when supported | Managed C# fallback blocked until audit, benchmarks, vectors, and side-channel review pass | `cd platforms/dotnet && DOTNET_CLI_HOME=/private/tmp dotnet test` |
 
 ## Readiness Checklist
 
@@ -50,6 +50,10 @@ Every production-ready provider entry must carry:
 - Additional ML-DSA cryptographic conformance vectors from every approved
   provider and target runtime.
 - Device benchmark reports for Apple, Android, and Windows.
+- Windows hosted-runner evidence from
+  `.github/workflows/windows-dotnet-mldsa-evidence.yml`; this is sufficient for
+  runtime support/conformance discovery, but release-grade performance evidence
+  still needs a pinned Windows device or VM.
 - Side-channel review reports for any fallback implementation.
 - Secure Enclave lifecycle decision for non-exportable account/device keys.
 - Server or verifier trust-state integration and storage evidence.
