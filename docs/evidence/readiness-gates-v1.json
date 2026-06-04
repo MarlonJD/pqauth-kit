@@ -1,0 +1,159 @@
+{
+  "schema": "pqauth-kit-readiness-gates-v1",
+  "version": 1,
+  "generatedAt": "2026-06-04",
+  "requiredProductionEvidence": [
+    "providerSourceId",
+    "providerVersion",
+    "license",
+    "conformanceVectorId",
+    "auditReportId",
+    "benchmarkReportId",
+    "sideChannelReviewId"
+  ],
+  "readinessGates": [
+    {
+      "id": "cryptographic_conformance",
+      "requiredStatus": "approved",
+      "requiredEvidence": [
+        "keygen",
+        "sign",
+        "verify",
+        "public-key-import",
+        "public-key-export",
+        "private-key-import-or-non-exportable-lifecycle",
+        "private-key-export-or-non-exportable-lifecycle",
+        "wrong-context-rejection",
+        "signed-bytes-mismatch-rejection",
+        "malformed-public-key-rejection",
+        "malformed-signature-rejection",
+        "unsupported-parameter-set-rejection"
+      ]
+    },
+    {
+      "id": "provider_audit",
+      "requiredStatus": "approved",
+      "requiredEvidence": [
+        "source",
+        "version-or-commit",
+        "license",
+        "reviewer",
+        "remaining-risk"
+      ]
+    },
+    {
+      "id": "benchmark",
+      "requiredStatus": "approved",
+      "requiredEvidence": [
+        "keygen-p50-p95",
+        "sign-p50-p95",
+        "verify-p50-p95",
+        "import-export-p50-p95",
+        "malformed-rejection-p50-p95",
+        "device-model",
+        "os-or-runtime",
+        "package-commit",
+        "benchmark-command"
+      ]
+    },
+    {
+      "id": "side_channel_review",
+      "requiredStatus": "approved",
+      "requiredEvidence": [
+        "secret-dependent-branch-review",
+        "secret-dependent-memory-access-review",
+        "rejection-sampling-review",
+        "zeroization-review",
+        "failure-path-review",
+        "logging-boundary-review",
+        "reviewer"
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "providerId": "apple.cryptokit.mldsa65.macos",
+      "providerSourceId": "apple-cryptokit-mldsa-docs-2026-06-04",
+      "providerVersion": "Apple CryptoKit MLDSA65 on macOS 26.0 SDK",
+      "license": "Apple Developer Documentation",
+      "conformanceVectorId": "apple-cryptokit-mldsa65-device-identity-2026-06-04",
+      "auditReportId": "apple-platform-provider-doc-review-2026-06-04",
+      "benchmarkReportId": "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04",
+      "sideChannelReviewId": "apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04",
+      "productionReady": false,
+      "remainingRisk": "Release-device benchmark evidence, side-channel review evidence, and broader provider conformance coverage remain pending."
+    },
+    {
+      "providerId": "apple.cryptokit.mldsa65.ios",
+      "providerSourceId": "apple-cryptokit-mldsa-docs-2026-06-04",
+      "providerVersion": "iOS 26.0 SDK documentation",
+      "license": "Apple Developer Documentation",
+      "conformanceVectorId": null,
+      "auditReportId": "apple-platform-provider-doc-review-2026-06-04",
+      "benchmarkReportId": null,
+      "sideChannelReviewId": null,
+      "productionReady": false,
+      "remainingRisk": "iOS device-generated conformance, benchmark, lifecycle, and side-channel evidence remain pending."
+    },
+    {
+      "providerId": "android.official-app-facing.mldsa65",
+      "providerSourceId": "android-app-facing-provider-doc-check-2026-06-04",
+      "providerVersion": "Android public app-facing provider documentation not found",
+      "license": "Android documentation content license",
+      "conformanceVectorId": null,
+      "auditReportId": "android-provider-doc-review-2026-06-04",
+      "benchmarkReportId": null,
+      "sideChannelReviewId": null,
+      "productionReady": false,
+      "remainingRisk": "No official app-facing ML-DSA signing provider is documented at this checkpoint."
+    },
+    {
+      "providerId": "dotnet.system-security-cryptography.mldsa65",
+      "providerSourceId": "dotnet-system-security-cryptography-mldsa-docs-2026-06-04",
+      "providerVersion": ".NET 10 System.Security.Cryptography.MLDsa",
+      "providerCommit": "94ea82652c",
+      "license": ".NET documentation and runtime license",
+      "conformanceVectorId": null,
+      "auditReportId": "dotnet-provider-doc-review-2026-06-04",
+      "benchmarkReportId": null,
+      "sideChannelReviewId": null,
+      "productionReady": false,
+      "remainingRisk": "The local macOS .NET runtime exposes MLDsa APIs but reports IsSupported=false; runtime-supported conformance, benchmark, and side-channel evidence remain pending."
+    }
+  ],
+  "fallbackRules": [
+    {
+      "language": "Swift",
+      "allowedImplementation": "audited pure Swift",
+      "productionReady": false,
+      "blockedUntil": [
+        "conformanceVectorId",
+        "auditReportId",
+        "benchmarkReportId",
+        "sideChannelReviewId"
+      ]
+    },
+    {
+      "language": "Kotlin",
+      "allowedImplementation": "audited pure Kotlin",
+      "productionReady": false,
+      "blockedUntil": [
+        "conformanceVectorId",
+        "auditReportId",
+        "benchmarkReportId",
+        "sideChannelReviewId"
+      ]
+    },
+    {
+      "language": "C#",
+      "allowedImplementation": "audited managed C#",
+      "productionReady": false,
+      "blockedUntil": [
+        "conformanceVectorId",
+        "auditReportId",
+        "benchmarkReportId",
+        "sideChannelReviewId"
+      ]
+    }
+  ]
+}

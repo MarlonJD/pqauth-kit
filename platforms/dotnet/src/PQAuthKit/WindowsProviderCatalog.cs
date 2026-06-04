@@ -61,8 +61,8 @@ public sealed class WindowsProviderCatalog(IReadOnlyList<PQAuthProviderMetadata>
         }
 
         return policy.IsProduction
-            ? provider.FallbackAllowedInProduction && provider.HasApprovedProductionGates
-            : provider.HasApprovedProductionGates;
+            ? provider.FallbackAllowedInProduction && provider.IsProductionReady
+            : provider.IsProductionReady;
     }
 
     public static WindowsProviderCatalog Default() => new(
@@ -88,12 +88,21 @@ public sealed class WindowsProviderCatalog(IReadOnlyList<PQAuthProviderMetadata>
         FallbackAllowedInProduction: false,
         AuditStatus: PQAuthGateStatus.Approved,
         BenchmarkStatus: PQAuthGateStatus.Pending,
-        SideChannelReviewStatus: PQAuthGateStatus.Pending);
+        SideChannelReviewStatus: PQAuthGateStatus.Pending,
+        Evidence: new PQAuthEvidenceReferences(
+            ProviderSourceId: "dotnet-system-security-cryptography-mldsa-docs-2026-06-04",
+            ProviderVersion: ".NET 10 System.Security.Cryptography.MLDsa",
+            ProviderCommit: "94ea82652c",
+            License: ".NET documentation and runtime license",
+            ConformanceVectorId: "dotnet-system-security-cryptography-mldsa65-runtime-2026-06-04",
+            AuditReportId: "dotnet-provider-doc-review-2026-06-04",
+            RemainingRisk: "Release-device benchmark and side-channel evidence remain pending."));
 
     public static PQAuthProviderMetadata ManagedFallback(
         bool productionApproved,
         bool usesCOrFFI = false,
-        bool nativeLibraryDependency = false) => new(
+        bool nativeLibraryDependency = false,
+        PQAuthEvidenceReferences? evidence = null) => new(
         ProviderId: productionApproved ? "dotnet.managed-csharp.mldsa65.approved" : "dotnet.managed-csharp.mldsa65.pending",
         Algorithm: PQAuthAlgorithm.MLDsa,
         ParameterSet: PQAuthParameterSet.MLDsa65,
@@ -109,5 +118,6 @@ public sealed class WindowsProviderCatalog(IReadOnlyList<PQAuthProviderMetadata>
         FallbackAllowedInProduction: productionApproved,
         AuditStatus: productionApproved ? PQAuthGateStatus.Approved : PQAuthGateStatus.Pending,
         BenchmarkStatus: productionApproved ? PQAuthGateStatus.Approved : PQAuthGateStatus.Pending,
-        SideChannelReviewStatus: productionApproved ? PQAuthGateStatus.Approved : PQAuthGateStatus.Pending);
+        SideChannelReviewStatus: productionApproved ? PQAuthGateStatus.Approved : PQAuthGateStatus.Pending,
+        Evidence: evidence);
 }

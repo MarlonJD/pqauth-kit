@@ -51,6 +51,56 @@ public enum PQAuthGateStatus: String, Codable, Equatable, Sendable {
     case rejected
 }
 
+public struct PQAuthEvidenceReferences: Codable, Equatable, Sendable {
+    public let providerSourceId: String?
+    public let providerVersion: String?
+    public let providerCommit: String?
+    public let license: String?
+    public let conformanceVectorId: String?
+    public let auditReportId: String?
+    public let benchmarkReportId: String?
+    public let sideChannelReviewId: String?
+    public let remainingRisk: String?
+
+    public init(
+        providerSourceId: String? = nil,
+        providerVersion: String? = nil,
+        providerCommit: String? = nil,
+        license: String? = nil,
+        conformanceVectorId: String? = nil,
+        auditReportId: String? = nil,
+        benchmarkReportId: String? = nil,
+        sideChannelReviewId: String? = nil,
+        remainingRisk: String? = nil
+    ) {
+        self.providerSourceId = providerSourceId
+        self.providerVersion = providerVersion
+        self.providerCommit = providerCommit
+        self.license = license
+        self.conformanceVectorId = conformanceVectorId
+        self.auditReportId = auditReportId
+        self.benchmarkReportId = benchmarkReportId
+        self.sideChannelReviewId = sideChannelReviewId
+        self.remainingRisk = remainingRisk
+    }
+
+    public var hasProductionEvidence: Bool {
+        !isBlank(providerSourceId)
+            && !isBlank(providerVersion)
+            && !isBlank(license)
+            && !isBlank(conformanceVectorId)
+            && !isBlank(auditReportId)
+            && !isBlank(benchmarkReportId)
+            && !isBlank(sideChannelReviewId)
+    }
+
+    private func isBlank(_ value: String?) -> Bool {
+        value?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+    }
+
+    public static let none = Self()
+}
+
 public struct PQAuthProviderMetadata: Codable, Equatable, Sendable {
     public let providerId: String
     public let algorithm: PQAuthAlgorithm
@@ -68,6 +118,7 @@ public struct PQAuthProviderMetadata: Codable, Equatable, Sendable {
     public let auditStatus: PQAuthGateStatus
     public let benchmarkStatus: PQAuthGateStatus
     public let sideChannelReviewStatus: PQAuthGateStatus
+    public let evidence: PQAuthEvidenceReferences
 
     public init(
         providerId: String,
@@ -85,7 +136,8 @@ public struct PQAuthProviderMetadata: Codable, Equatable, Sendable {
         fallbackAllowedInProduction: Bool,
         auditStatus: PQAuthGateStatus,
         benchmarkStatus: PQAuthGateStatus,
-        sideChannelReviewStatus: PQAuthGateStatus
+        sideChannelReviewStatus: PQAuthGateStatus,
+        evidence: PQAuthEvidenceReferences = .none
     ) {
         self.providerId = providerId
         self.algorithm = algorithm
@@ -103,10 +155,49 @@ public struct PQAuthProviderMetadata: Codable, Equatable, Sendable {
         self.auditStatus = auditStatus
         self.benchmarkStatus = benchmarkStatus
         self.sideChannelReviewStatus = sideChannelReviewStatus
+        self.evidence = evidence
     }
 
     public var hasApprovedProductionGates: Bool {
         auditStatus == .approved && benchmarkStatus == .approved && sideChannelReviewStatus == .approved
+    }
+
+    public var hasProductionReadinessEvidence: Bool {
+        evidence.hasProductionEvidence
+    }
+
+    public var isProductionReady: Bool {
+        hasApprovedProductionGates
+            && hasProductionReadinessEvidence
+            && !usesCOrFFI
+            && !nativeLibraryDependency
+    }
+}
+
+public enum PQAuthReadinessGate {
+    public static func blockers(for provider: PQAuthProviderMetadata) -> [String] {
+        var blockers: [String] = []
+
+        if provider.auditStatus != .approved {
+            blockers.append("audit_status_not_approved")
+        }
+        if provider.benchmarkStatus != .approved {
+            blockers.append("benchmark_status_not_approved")
+        }
+        if provider.sideChannelReviewStatus != .approved {
+            blockers.append("side_channel_review_status_not_approved")
+        }
+        if !provider.evidence.hasProductionEvidence {
+            blockers.append("required_evidence_missing")
+        }
+        if provider.usesCOrFFI {
+            blockers.append("native_or_ffi_dependency_present")
+        }
+        if provider.nativeLibraryDependency {
+            blockers.append("native_library_dependency_present")
+        }
+
+        return blockers
     }
 }
 

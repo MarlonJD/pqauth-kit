@@ -1,0 +1,84 @@
+{
+  "algorithm" : {
+    "name" : "ML-DSA",
+    "parameterSet" : "ML-DSA-65",
+    "privateKeyLength" : 4032,
+    "publicKeyLength" : 1952,
+    "signatureLength" : 3309
+  },
+  "cases" : [
+    {
+      "canonicalBytesUtf8" : "{\"subject\":\"pqauth-kit-conformance\",\"trustStateObject\":\"device_identity\",\"version\":1}",
+      "context" : "cHFhdXRoLWtpdC1kZXZpY2UtaWRlbnRpdHktaHlicmlkLWF1dGgtdjE",
+      "expected" : "verify_true",
+      "id" : "apple_cryptokit_mldsa65_device_identity_2026_06_04",
+      "privateKey" : {
+        "encoding" : "base64url-cryptokit-integrity-checked-private-key-test-fixture",
+        "length" : 64,
+        "secret" : false,
+        "value" : "pgL_UoOT3uTFhSFjW37GJsnEUCw799pMKjAhmvk3h6r5KIp2U2vSrLrhTiJU3ZRTWCSfCPx6uJs3AnuAslw3_g"
+      },
+      "providerId" : "apple.cryptokit.mldsa65.macos",
+      "publicKey" : {
+        "encoding" : "base64url-raw-fips204-public-key",
+        "length" : 1952,
+        "value" : "GwzdSVktmW9fIhRAjoya3TRza9sDv1uH4HOqSDTwg1qiEekdSeyKLf7ecbgMVrVDSknZglNf5DkULPUEdHRV-05VpOA-i8VU6njDu1fuj1mcVLsUxZmg37EfO2Ikbd_eH-FaTSonEvDABzquZO2pJiC5yZOp9LAhqndMmN-hpAZnzc8zqNFGKn092tbJnlbMeFNhHjahwaUID3OEd2yGfhxc9M6Z4aS4eAWh9lqlJvkJh6oisuY6gO4E3p17hPGkb68Tm46tqms2Zkl8NkaOf6lPne6nGykOqNBrjokliK9C0HMMbkOTW-i82Chrv45KrwoybiJp5oU8EnzMHwIw3GzeGCN6_-Ev3yfd1oFpR9RzqhZBu2KLT2RMHudTb3XUYR3Xxk9wy6HSw4i5xHF4VkCl0jDT6ovSLIG7D2ZwvjeavTYDCqP_60WDmzVtu3zE8vLpnlaCgoD-6U33mZFKn9nscdukq0Uy6Jf7jU_aacVCRO4NNpswGvxBq2QLQFsDalvLBh7PV8BIO066g4yfJ6_Mtp68ByxQ-zdFXo3JwR5ejJTomh5B1iOyE9eTgOf-1h-rPuy7s6zBZDgpVpQq0t87JOHjW7nP9m3mIXZYASqoK9zkw5MOyW0C2KIN5yZEYYLZP9UMax4xa3Vz_KvvaLH_LNEVyD6hhsFqGt7HmbuxoHkCn0KktL_dnqSRDCsTWHh-lsTu71GvkS8Jsm_HjqbPTA5h_n14xXZbbn-XQvBWU4YQgi_uZOF_3YgMjMrTbfQGsL_PRT_69kFPdeI6aEc9b_21JNL43nHnCuIvGBTa9tm5A0tT1E_GA13WA8JzL3Q-PRdnDJlQoGXclbSoYNToT7Ds3o-QLYTTZrNJzmv4bG5s_esOWo3lpqL8h77A_JMbL0QDdxXpZtiFMPZwuu13fIz_0ZV1fmZAlQp9emnxaorKtbmOJeObVEiTjyfHhyodYN2MT1jhu_JxU3UqpW7weyxEf7bprAJTAwcNKEiUGl_-hNFhuvZJFbHUewALCCoBS5yIXHVb0hDiEcRADs4lj5solsTBKKd1bGKABvGdYCH3s4UrCGtOeWdg7WEos9zjBRUfvZEHlvVhDmVhsIcCPb-pIQ-49Gxbk34F6clHFNKSPZbjTGrZBtXRj8kv37feYXqs1jAhNwUnXndvvHzbMh0Ai_jdbqUB2y5jOAkFiWw3tD4aidJVg2odBeeH1mpS79BU18erv-hK_yjSnzcqIj_Wxp0_BUYU1pmVf47phxZ-MidDHaBkLexoxb0KVNakEawdFvGEoVYqa2GOPSPfKQ0inhBUigoSfXhb1lDterRcFrciZHn4hODMopBbHO0Igm8uvh6J8sbh2tygAg3yi4E1WWd2cqSL0JAtsve0AamZT1hX7-elrw6E3sYF1nTcGWrzx_MborP2ul0ipdl0xDLZ8BNYw1-1knsw1Xj5iwYkpUrDvceVPgt6HgBteVPr-duE6efo_uZXT4x4qRTskG5MQOADyaOAhOoFi6GW2CKx0SYmMGd89Lca5xhJG2gef4sRR-NxRb2n_aSV4HO5kkQZGr8WsyKYTra_rX4P1TT47A3Mp7aHDrrBgIKhd1TGEGXbACGa3H1ZLW353IVNqE7P9tAvNuoKXMoHmsLlqRczvjEuv6tcDa0aW10XMRwZbiPBG8Q-Ny-Ds1ZRzxj2J-uA_JElnXKKdOm6VRdu1fgSfBYu9uvRko9pf3H2qOJgxbqUSM-D2tFofqWDGLTOPo3lgY4WXhgSzW2avS9vXHQY6abFzog5Xm335mYkDF5wC1eybdf3xkGFKJukO3Yi2CQ56VtDFKkQ5Vv6xQu1fUvMbyIX2N9-u-fmZ7lCMj0Zdv7NiTHXpJNmtt2tAkHtMViPmY-NCtUZFhqJQOJMth9kj-J0W4O8kd4FkDxTvQLd585_ga2Sk8k9UQnJkqdOHlJIqkmbABq6uZBe4vJlhJraFfQJylxEUM3psJeii-irMA_391nRjegakSTlgdDQo53IJIgv1UVSr_R_B7tEfk0TgoFklCMWfaXHkb-mlFDhSaVEtQh0_sz2dUR09gcmFITRoyct9sQcDRSPa4BrwVQZgQfCTaRQse4Rl3G5wQLD-bqKxWI6lhTdz_iZQLAVaZiHlRZ9WEVjV_RHcbh7aRmWwgF1CDhMzD-TzuCxJfyrzQZj6yIY1DFFTW-93I2CUFyexY69tkWsVZd534przCerjY_HHGJAdyr3qozuVZ_h31Ngl5gLm7-3bsZ3eqUFu2c-sU23iGBENxJ8i_66ObfnmM6_s9_OYRiKzpgWdJ-uf5hLgs9_LTA70sYjxPeuTW2yT_7o_4kjcyqxuRsObmY7kefNVZqWbSWzIHxIp-Ztjfzuurdd7NjGvWARgD4-p--SPHljFQxfUaBC54Yu2dLDNRdvC8e9JWwU9TEM0AxzkcFYaPn9Gg4NnGG9nTj3hlSNSF3AMeNMJ7rRzPpC0296F3QsUUOaIByO3hTaOFht1NCopJbOyD9YOJs_29BotVzMBKetNorIJeIWypAoH8UWOsIR9weYSN445MvhzmXshL5x8r49XlCY7jfahK51-1xk0RPzCjsezw_IdRw"
+      },
+      "signature" : {
+        "encoding" : "base64url-raw-fips204-signature",
+        "length" : 3309,
+        "value" : "bxgpsx5ANkNUOETPXY3Tqsh1znZrkoTJMEqZo3fq_OL7b_ymBkWe9rm9Xw-RkpnCV5TK6uhblV6XS8ol8sSCJkaR8PfKlNebFRzHlKhRgIFJqLMZzgbDGHmlFzL5bTL1YncrvzjtwP8xOIN3hKoBO5L6foY_F8WiZU4xKt_f1N1dTLxCWt7XcjmbpUJW0kARptvfGH9A36VJrd4kedRft5xMatWOMA9AogdUxD9css-oj8xFH1nI7EEsS06hOSZY3Ppk6b1OacMyNMlN5tLyyauu_SzQl6XQwUZNgpFmUS9u59IRRnwvepSEd6W5n5lpUrs92ozd1gDU0xon7k1xIC5ckFcF60RoujRSfYb6NWOmX7iJJhmwZtrqmpKvc98VI6B3Q4IDeVAUyKjmoVix7TE7PZWtZqS7w_AnZ-zOilq-jVMQe2tB9hWAjZ87zuJcbriykrnjplTyxsaidkL19xN0Jke3OkLnfdizFkCfTZA4eEuJSpQ1DKSfUgv1bm8gC0ZXw3kG4KzmRV5ThcDbsVwhTQFTNAdZmcqE0bLqYvHR-SgSEjvE1XrTBtUhjX0DluaF_q5NiAQwwRAm3TYdZ63gXJEumiEVGLHKDHc-l3_QQC42XIerfXfIt2gi6iEuBNBU6s4x-65PjB5rIjpD6Lq2IS2lNPLhUZOZK31E97qKWoyHAbiONoWwM0SYfZ9GEjxAn4UkKpc_H9W-VLszgSU_HZBkcalULIgnhctEKytciBJZ49K0kT8QaHKtswnE26b0fSC3fUAk6FV98PREEpxWVF0ERoP0sFeFvs1ty2P68DvpnBTW3nd7xevX3eOWL_Tb3I4YxKwIE545tquWeIM97GOOuzUJuVJwfljVpQCwKrKAGTU0KUi7Oo6-bn21OFC4h2WKpuMtBDBgaZ388Sw9YhloiyL90CiSmwy9Q7EwSfozncC7Lt4b3ZOUI0T0G_3DNCnMO5XmCEY-GlIbsPvFCG3ztdJtZuag0L2UPjCiAS8Fig7shdMQjSw4q4R9rZkXJm3qJuD5Y3m6BDUv6m4rJZvuCQGClxSurcwYC3u-_QfIM23HuP6mSAbuUyDPgVT-LiKRxXtXBYtqkfEalfBNqB7vpskoLDCbeX6yHFjHkIF9XAiwXuH9fXYPX2URrRq6odmGZaA1bredMB3C8AyuNHHpNyz6WV5jMfVWQUzjkpuXhOAmkDanacq2wMEIf0-ips71-Sg8DfwKW0dAE-TMUf4USds29EAurAFxCLU-eLa7fCCbhouvrLAw0gRvimjnQ06EJkub4L3lqldGKYmu2zzPhVutp7eLxx9bR-Gg4GfnY0ssBiBLTNemyBcIPS-I-hcwK2wz_vE8zGnqBSSxyFxmBW0DmfqIK3QQ7SlrtiUqoRguiEEinbgL1YyCCbrunOxQpsjx1fCOgtnOlqyGp1z2RKoLSMfeS8sURPx7rxrbAqGPlmT3jptoZoWy0pC3PwU55bHsWC350DhQuGmJRbUwUMFjfmDRTbrBLMqsjUvMTU1Lil6LN8J-iDehOMkQJJmQlOFTHu2cJnfgfsJL2yyg2rDj1gZfPDRm8MU1VpKQULRKELFipK0aBSRkOYJUdot8UNX0_8mbuE3RNvp9BR9DSeDF5N8zfANa7RHB53t6fxlbKRAOy_ZV98dXP1EFQT7uJ4_V8gTx7jZhxDIy-EXBu5MpYXT-1hICgr_gbv9MUIh01X-cFFe61Iukc8bD1I0FJ8rLVTsqflTfnBMErBrohSX75LoePyIVmXY2wQHtUj9aPXBLeDRhHnqmEziNr7JTPSpDcQxm2wJH-LFMYfr5LNmc0Ls1JQdNmYtQur1DhceBESi8nytLjWOuWdecSJmMbL_TwiqdWPaaUwTx8rTZDlh_d0ZT7sJ1DMwm1q1SNGqOcQNLTkgGfKKzLmGHUMvC61n9XgIsr0PrDlVwowlPHoulpsNG04iB7usFIZY2d2UWvxKaM0DvbelrqVQ1y_8DsoYX-i28z1WK5Ao8yLQX8L2mIBHb3tijpjHjAyzQIOpHMXEzNhka2WBzhUyOwRLk9b0eL9PFD2_7_o_p3CCOuWpXP6qZo0Rt62LFRGThFOxcerrcq4ikrV98yoycBC-Mkj-j8n3BbtfzlemYJiWLTEFBFzDBehki8va3cTAM_VSk8m-h-CMPAgyjBYNc7pkD6Jphttua8SaFAsjweUow7cHHRWRb5g_k2DmHEZtA54wvQriIMI-iJDLpNZvIHbbOyl5phIN4_imznZ4sqlmICNWR9V4V9W3Y9eTlvvRqtOFa11aHjhogKoxhnjLS1O2q2irvECzz8I7zvOnVO7jkUx0PiYOr0dAW2XSeKaMwCbpT53CD6pDOxwaK4DBJ6zjUIKEdoo2xFkuq2TPL5XSieHXhdg3UoUqkvfhZkfkqm8wOqdEEVmOA3g8M8UBe-09DkecHtnjFEFM3lvgid94OUHxpYRsnWOPIwRp-l-jCwHGhEZSS8af_JETpqE9CKtmIhPJpn9ZiKUdvKN3FZRoGTY-Dun6zghwCFxUjK7Ccln9j9L5zSI6Zfd9vtRqmlq0CDu6LS0nqrMZ0n0dVBBeSvOK19tULt8WlyYmfsRxFx8cTEFGsiUOOVgeiszivxvMxt5Vw8lZeZjxdhxWRFW21pjBa0NXe4tQMlCQ9S2Np4GWikJO9ZdIysmbNY5rd4jGvAsSmQ-ibBo-XERJCHGW1FCHvsGSeYhLYsZA2Mfwdbys_HQQWkiltByfaF3VE4q2xZWnVs1F6P9KJs4t0ucLQvGwZYYGbVlTqTENzyIuNNdurq0C_2rnahHSQG0aHFiK_OsbkFyawGSuBUjCT846CO5-o6141D-BKLsnGoq2TTqn5oI_e04FtaX69dzhWOuk9bJDIneFLYyQQ9D2Wc5VYuGvUA70EoMiCf-lnIRqrDY6e1J19VmnbpT7ujzStyZnYmOWYfq2piHZxOul_Q3_Z_kdbPWCbWWM_gPzS3p6lFnyOkSJ90Rf-jmurqy-ThvhX1ZKYYWIKMgViqMjKZFLl19SbU3b6kzSX8JeKeFpKibaDC4Z_NBeizla6zF2QQUJqxLFQLEKHGy1RqSzSkCIUIOuniDQxIN1t6bfg3Ugs6Y7fJb1F7N7atu-kf6ZY030C8C8vuKNz2zzUYn3T27gucR1ufIbDU-vFQ0T3qAk6ofXbMgn73w3br1pEf6vjxIavL5DPUuFyhlwRl_AEbk2YSI6kfkXO1x68IYnFh4RHyRoYTaSFFqayb6W2Qg_FZAhNOY44q5nffbq3zqXyLYPPR1LJdM_eqeNeTO9NpWfsI6djwtIxvEGMcLzDKuFtY4lTur5tS77ohQOlJO6WBhI8Y-UsEH_wmG5e_Czhi9mTqnITTdkBsMuCpQ5WfhyxnrajjStla7nWw8dRCqShwbegNeYyCTZBur9yIj-rnABkPRo8BHm1rNBjKKpuQn9y8m5DN3lzwF8_uEnpBBdRxE5LZTTt97rQ8QTx3-jH0NHJ-B2lHWsVLgUHLgladb1ulgMxGgcwDd8Pl67H6A0-An6T6F6ORRlz_LtzHRvK158KAQzy8u_P5LD3oGVQg343dFDxO4GJbsgfWameqVJwy6_iK3yaEhPvyZOCH5KmapOI1jXXqJj2IVK95PkDtLmZvSu9OKGn98ixc7MC51xnN4FnH2yjAEQrY_KuMd1TIqjQbzAqH8XUHwlwy2ALTYfn1BelA4YSuziHga_LZ0kn2wcUYggOg3TwzW9UAnc81wtIOxt0CUTuxTSWHh629VJ7YFfeiK-bcjfCoPsXKQDUVeIwCThUHKaSrp0RidWtf4fhZ_j0t5Ti4mXA7O1UDvxuYJ1RX0GX2LvQo3z1aBtTlcYXPz-T2WcdEa3HyubuRIVmL_LH5V6r6pKwXmCU3I3lA70T6KhQNDYIWb5tArpRGD1iJmxCLZTpdTvhT2kH3lhiVktQhgQtcyEv58m3sfXZ_pH3e8VKDsSLqehNXJzN0bMNdWJ8vunDlOZijx5Wfb0r6N4OGC90_1W-9jJOkT_DQYFqAWxLRXwGy9xjjQFou5kbFD2WoTCeXsw6QXaSwYQeNL6QqUQqivEytEh0XUmCmXPS-af-KWBmHrWRVebdZBgGEcy4B-B-M68kLvGXZw7tNAW6WLbz7AVlrT_-o7I77-nSF0gm3En0XmxfZew_E0MalAQrvN9qm74kXaXyUnUBqU291ze5ZxUYS8jsdI4VClSJK5kIAq3DA0JHLcgp7Af4nca4NEbjS8la73lAN-9gmC_zl7czKW0B_5oSu9Mz-2GPVIGZ3awcgwvYSj-oZ5mXbi9mgaXN606PctMZKzZUlZYBSIq18AIXGHKh1flJWF9tdnyArM7Z5_dHy9KptbkAAAAAAAAAAAAAAAAAAAAAAAAABgsSHiEk"
+      },
+      "signedBytesDomain" : "pqauth-kit-device-identity-hybrid-auth-v1",
+      "signedBytesHash" : "L0IDCAx87T4w8kF3w_w-r3aNPkM223TTNIMjxDOL0Qg",
+      "trustStateObject" : "device_identity"
+    }
+  ],
+  "fixtureKind" : "cryptographic-provider-conformance",
+  "generatedAt" : "2026-06-04",
+  "generatedBy" : {
+    "architecture" : "arm64",
+    "osDescription" : "Version 26.5.1 (Build 25F80)",
+    "packageCommitAtGeneration" : "bdccefb89a2c933513c99f658cd2070d8740236c",
+    "providerId" : "apple.cryptokit.mldsa65.macos",
+    "providerSourceId" : "apple-cryptokit-mldsa-docs-2026-06-04",
+    "providerVersion" : "Apple CryptoKit MLDSA65 on macOS 26.0 SDK"
+  },
+  "negativeCases" : [
+    {
+      "expected" : "verify_false",
+      "id" : "signed_bytes_mismatch",
+      "mutation" : "replace_canonical_bytes"
+    },
+    {
+      "expected" : "verify_false",
+      "id" : "wrong_context",
+      "mutation" : "replace_context"
+    },
+    {
+      "expected" : "reject_length",
+      "id" : "malformed_public_key",
+      "mutation" : "truncate_public_key"
+    },
+    {
+      "expected" : "reject_length",
+      "id" : "malformed_signature",
+      "mutation" : "truncate_signature"
+    }
+  ],
+  "operations" : [
+    "keygen",
+    "sign",
+    "verify",
+    "public-key-export",
+    "private-key-export",
+    "public-key-import",
+    "private-key-import",
+    "signed-bytes-mismatch-rejection",
+    "wrong-context-rejection",
+    "malformed-public-key-rejection",
+    "malformed-signature-rejection"
+  ],
+  "schema" : "pqauth-kit-mldsa-conformance-v1",
+  "version" : 1
+}

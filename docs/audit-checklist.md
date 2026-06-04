@@ -6,11 +6,13 @@ Date: 2026-06-04
 
 No fallback provider is production-eligible until every item in this checklist
 has an owner, evidence link, and approval status. A missing item means
-`hybrid_auth_required` must fail closed on that platform.
+the required hybrid-auth profile must fail closed on that platform.
 
 ## Provider Audit
 
 - Provider source, version, commit, and license recorded.
+- Provider evidence ids recorded for conformance vectors, audit report,
+  benchmark report, and side-channel review.
 - FIPS 204 parameter set mapped to code paths for key generation, signing,
   verification, import, export, context handling, and malformed input rejection.
 - Positive vectors pass for account identity, device identity, roster publish,
@@ -45,6 +47,8 @@ malformed signature rejection for:
 
 Benchmark evidence must include p50, p95, allocation or memory notes, payload
 size impact, device model, OS/runtime version, provider id, and package commit.
+The report id must appear in `docs/evidence/readiness-gates-v1.json` before a
+provider can be marked production-ready.
 
 ## Production Fallback Rules
 
@@ -54,3 +58,5 @@ size impact, device model, OS/runtime version, provider id, and package commit.
   vendored native libraries, dynamic native libraries, or FFI.
 - Windows fallback: managed C# only; no P/Invoke, native DLL loading, C, C++,
   Rust, assembly, vendored native libraries, dynamic native libraries, or FFI.
+
+Approved status without the corresponding evidence ids is not production-ready.

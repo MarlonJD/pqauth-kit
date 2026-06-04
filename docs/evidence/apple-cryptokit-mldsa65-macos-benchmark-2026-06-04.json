@@ -1,0 +1,65 @@
+{
+  "benchmarkCommand" : "swift -module-cache-path \/private\/tmp\/pqauth-swift-module-cache -e <benchmark script>",
+  "benchmarkDate" : "2026-06-04",
+  "benchmarkReportId" : "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04",
+  "deviceModel" : "unavailable-in-sandbox",
+  "iterations" : 30,
+  "memoryNotes" : "Allocation profiling not captured in this local timing pass.",
+  "operations" : {
+    "keygen" : {
+      "iterations" : 30,
+      "maxMs" : 2.8414169999999999,
+      "minMs" : 0.44108399999999998,
+      "p50Ms" : 0.843333,
+      "p95Ms" : 2.140917
+    },
+    "malformedPublicKeyRejection" : {
+      "iterations" : 30,
+      "maxMs" : 0.61016700000000001,
+      "minMs" : 0.00050000000000000001,
+      "p50Ms" : 0.00054199999999999995,
+      "p95Ms" : 0.0029589999999999998
+    },
+    "malformedSignatureRejection" : {
+      "iterations" : 30,
+      "maxMs" : 0.43879200000000002,
+      "minMs" : 0.28050000000000003,
+      "p50Ms" : 0.29420800000000003,
+      "p95Ms" : 0.32900000000000001
+    },
+    "privateKeyImport" : {
+      "iterations" : 30,
+      "maxMs" : 0.33537499999999998,
+      "minMs" : 0.28087499999999999,
+      "p50Ms" : 0.28762500000000002,
+      "p95Ms" : 0.3175
+    },
+    "publicKeyImport" : {
+      "iterations" : 30,
+      "maxMs" : 0.001333,
+      "minMs" : 0.00037500000000000001,
+      "p50Ms" : 0.00037500000000000001,
+      "p95Ms" : 0.00045800000000000002
+    },
+    "sign" : {
+      "iterations" : 30,
+      "maxMs" : 1.7981670000000001,
+      "minMs" : 0.56970900000000002,
+      "p50Ms" : 0.81091599999999997,
+      "p95Ms" : 1.3422080000000001
+    },
+    "verify" : {
+      "iterations" : 30,
+      "maxMs" : 0.52900000000000003,
+      "minMs" : 0.33766600000000002,
+      "p50Ms" : 0.35875000000000001,
+      "p95Ms" : 0.393625
+    }
+  },
+  "osRuntime" : "Version 26.5.1 (Build 25F80)",
+  "packageCommit" : "bdccefb89a2c933513c99f658cd2070d8740236c",
+  "providerId" : "apple.cryptokit.mldsa65.macos",
+  "remainingRisk" : "Local macOS timing evidence only; release-device matrix, allocation profiling, and mobile battery evidence remain pending.",
+  "schema" : "pqauth-kit-benchmark-evidence-v1",
+  "version" : 1
+}

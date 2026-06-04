@@ -29,8 +29,9 @@ libraries, Metal/GPU acceleration, C, C++, Rust, or assembly fallbacks.
 ## Layout
 
 - `docs/`: Provider strategy, audit checklist, FIPS 204 code map, and readiness
-  evidence.
-- `vectors/`: Shared hybrid trust-state signature vectors.
+  evidence, including `docs/evidence/readiness-gates-v1.json`.
+- `vectors/`: Shared hybrid trust-state structural vectors and provider-backed
+  ML-DSA conformance evidence.
 - `platforms/swift/`: Swift package for iOS and macOS provider policy.
 - `platforms/android/`: Kotlin/Gradle package for Android provider policy.
 - `platforms/dotnet/`: .NET package for Windows provider policy.

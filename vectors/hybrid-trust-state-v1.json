@@ -140,7 +140,7 @@
     { "id": "wrong_public_key_length", "basePositiveCase": "account_identity", "mutation": "truncate_mldsa_public_key", "expectedError": "mldsa_public_key_length_invalid" },
     { "id": "wrong_signature_length", "basePositiveCase": "device_identity", "mutation": "truncate_mldsa_signature", "expectedError": "mldsa_signature_length_invalid" },
     { "id": "unsupported_parameter_set", "basePositiveCase": "roster_publish", "mutation": "replace_parameter_set_with_ml_dsa_44", "expectedError": "mldsa_parameter_set_unsupported" },
-    { "id": "ed25519_only_outside_migration", "basePositiveCase": "prekey_bundle", "mutation": "remove_mldsa_signature_without_migration_mode", "expectedError": "hybrid_auth_required" }
+    { "id": "ed25519_only_outside_migration", "basePositiveCase": "prekey_bundle", "mutation": "remove_mldsa_signature_without_migration_mode", "expectedError": "hybrid_auth_profile_required" }
   ],
   "defaultMessageHotPath": {
     "perMessagePQSignaturesEnabled": false,

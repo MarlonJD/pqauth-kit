@@ -33,6 +33,13 @@ production use:
 - Rejection of unsupported parameter sets.
 - Deterministic test entropy isolation from production signing APIs.
 
+`vectors/mldsa-conformance-v1.json` records real provider evidence for ML-DSA-65
+key generation, signing, verification, public-key export/import,
+provider-specific private-key export/import, wrong-context rejection, signed
+bytes mismatch rejection, malformed public key rejection, and malformed
+signature rejection. Structural fixtures remain non-cryptographic until a
+provider-backed conformance vector covers the same case.
+
 ## Trust-State Domains
 
 - `pqauth-kit-account-identity-hybrid-auth-v1`

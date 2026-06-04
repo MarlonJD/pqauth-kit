@@ -44,7 +44,12 @@ class AndroidProviderCatalogTest {
     @Test
     fun `approved pure Kotlin fallback can be selected when policy allows it`() {
         val catalog = AndroidProviderCatalog(
-            listOf(AndroidProviderCatalog.pureKotlinFallback(productionApproved = true))
+            listOf(
+                AndroidProviderCatalog.pureKotlinFallback(
+                    productionApproved = true,
+                    evidence = completeEvidence()
+                )
+            )
         )
 
         val selected = catalog.selectProvider(
@@ -60,6 +65,34 @@ class AndroidProviderCatalogTest {
         assertEquals("android.pure-kotlin.mldsa65.approved", selected.providerId)
         assertTrue(selected.fallbackAllowedInProduction)
         assertTrue(selected.hasApprovedProductionGates)
+        assertTrue(selected.isProductionReady)
+    }
+
+    @Test
+    fun `approved statuses without evidence do not pass production readiness`() {
+        val provider = AndroidProviderCatalog.pureKotlinFallback(productionApproved = true)
+
+        assertTrue(provider.hasApprovedProductionGates)
+        assertFalse(provider.isProductionReady)
+        assertTrue(PQAuthReadinessGate.blockers(provider).contains("required_evidence_missing"))
+    }
+
+    @Test
+    fun `runtime provider selection is distinct from production readiness`() {
+        val selected = AndroidProviderCatalog.default().selectProvider(
+            policy = AndroidProviderSelectionPolicy(),
+            runtime = AndroidRuntimeCapabilities(
+                apiLevel = 37,
+                documentedAppFacingMldsaProviderAvailable = true,
+                pqcApkSigningAvailable = true,
+                auditedPureKotlinFallbackAvailable = false
+            )
+        )
+
+        assertEquals("android.official-app-facing.mldsa65", selected.providerId)
+        assertFalse(selected.isProductionReady)
+        assertTrue(PQAuthReadinessGate.blockers(selected).contains("benchmark_status_not_approved"))
+        assertTrue(PQAuthReadinessGate.blockers(selected).contains("side_channel_review_status_not_approved"))
     }
 
     @Test
@@ -69,7 +102,8 @@ class AndroidProviderCatalogTest {
                 AndroidProviderCatalog.pureKotlinFallback(
                     productionApproved = true,
                     usesCOrFFI = true,
-                    nativeLibraryDependency = true
+                    nativeLibraryDependency = true,
+                    evidence = completeEvidence()
                 )
             )
         )
@@ -101,4 +135,14 @@ class AndroidProviderCatalogTest {
         assertFalse(fallback.usesCOrFFI)
         assertFalse(fallback.nativeLibraryDependency)
     }
+
+    private fun completeEvidence(): PQAuthEvidenceReferences = PQAuthEvidenceReferences.complete(
+        providerSourceId = "android-fallback-test-source",
+        providerVersion = "test-version",
+        license = "test-license",
+        conformanceVectorId = "test-conformance-vector",
+        auditReportId = "test-audit-report",
+        benchmarkReportId = "test-benchmark-report",
+        sideChannelReviewId = "test-side-channel-review"
+    )
 }

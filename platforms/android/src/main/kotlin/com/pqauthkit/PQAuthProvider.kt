@@ -32,6 +32,55 @@ enum class PQAuthProviderUsage {
     DISTRIBUTION_IDENTITY_ONLY
 }
 
+data class PQAuthEvidenceReferences(
+    val providerSourceId: String? = null,
+    val providerVersion: String? = null,
+    val providerCommit: String? = null,
+    val license: String? = null,
+    val conformanceVectorId: String? = null,
+    val auditReportId: String? = null,
+    val benchmarkReportId: String? = null,
+    val sideChannelReviewId: String? = null,
+    val remainingRisk: String? = null
+) {
+    val hasProductionEvidence: Boolean
+        get() = listOf(
+            providerSourceId,
+            providerVersion,
+            license,
+            conformanceVectorId,
+            auditReportId,
+            benchmarkReportId,
+            sideChannelReviewId
+        ).all { !it.isNullOrBlank() }
+
+    companion object {
+        fun none(): PQAuthEvidenceReferences = PQAuthEvidenceReferences()
+
+        fun complete(
+            providerSourceId: String,
+            providerVersion: String,
+            license: String,
+            conformanceVectorId: String,
+            auditReportId: String,
+            benchmarkReportId: String,
+            sideChannelReviewId: String,
+            providerCommit: String? = null,
+            remainingRisk: String? = null
+        ): PQAuthEvidenceReferences = PQAuthEvidenceReferences(
+            providerSourceId = providerSourceId,
+            providerVersion = providerVersion,
+            providerCommit = providerCommit,
+            license = license,
+            conformanceVectorId = conformanceVectorId,
+            auditReportId = auditReportId,
+            benchmarkReportId = benchmarkReportId,
+            sideChannelReviewId = sideChannelReviewId,
+            remainingRisk = remainingRisk
+        )
+    }
+}
+
 data class PQAuthProviderMetadata(
     val providerId: String,
     val algorithm: PQAuthAlgorithm,
@@ -49,12 +98,49 @@ data class PQAuthProviderMetadata(
     val auditStatus: PQAuthGateStatus,
     val benchmarkStatus: PQAuthGateStatus,
     val sideChannelReviewStatus: PQAuthGateStatus,
-    val usage: PQAuthProviderUsage
+    val usage: PQAuthProviderUsage,
+    val evidence: PQAuthEvidenceReferences = PQAuthEvidenceReferences.none()
 ) {
     val hasApprovedProductionGates: Boolean
         get() = auditStatus == PQAuthGateStatus.APPROVED &&
             benchmarkStatus == PQAuthGateStatus.APPROVED &&
             sideChannelReviewStatus == PQAuthGateStatus.APPROVED
+
+    val hasProductionReadinessEvidence: Boolean
+        get() = evidence.hasProductionEvidence
+
+    val isProductionReady: Boolean
+        get() = hasApprovedProductionGates &&
+            hasProductionReadinessEvidence &&
+            !usesCOrFFI &&
+            !nativeLibraryDependency
+}
+
+object PQAuthReadinessGate {
+    fun blockers(provider: PQAuthProviderMetadata): List<String> {
+        val blockers = mutableListOf<String>()
+
+        if (provider.auditStatus != PQAuthGateStatus.APPROVED) {
+            blockers += "audit_status_not_approved"
+        }
+        if (provider.benchmarkStatus != PQAuthGateStatus.APPROVED) {
+            blockers += "benchmark_status_not_approved"
+        }
+        if (provider.sideChannelReviewStatus != PQAuthGateStatus.APPROVED) {
+            blockers += "side_channel_review_status_not_approved"
+        }
+        if (!provider.evidence.hasProductionEvidence) {
+            blockers += "required_evidence_missing"
+        }
+        if (provider.usesCOrFFI) {
+            blockers += "native_or_ffi_dependency_present"
+        }
+        if (provider.nativeLibraryDependency) {
+            blockers += "native_library_dependency_present"
+        }
+
+        return blockers
+    }
 }
 
 data class AndroidRuntimeCapabilities(
@@ -114,9 +200,9 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
         }
 
         return if (policy.isProduction) {
-            provider.fallbackAllowedInProduction && provider.hasApprovedProductionGates
+            provider.fallbackAllowedInProduction && provider.isProductionReady
         } else {
-            provider.hasApprovedProductionGates
+            provider.isProductionReady
         }
     }
 
@@ -146,7 +232,14 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
             auditStatus = PQAuthGateStatus.APPROVED,
             benchmarkStatus = PQAuthGateStatus.PENDING,
             sideChannelReviewStatus = PQAuthGateStatus.PENDING,
-            usage = PQAuthProviderUsage.TRUST_STATE_AUTHENTICATION
+            usage = PQAuthProviderUsage.TRUST_STATE_AUTHENTICATION,
+            evidence = PQAuthEvidenceReferences(
+                providerSourceId = "android-app-facing-provider-doc-check-2026-06-04",
+                providerVersion = "Android public app-facing provider documentation not found",
+                license = "Android documentation content license",
+                auditReportId = "android-provider-doc-review-2026-06-04",
+                remainingRisk = "No official app-facing ML-DSA signing provider is documented at this checkpoint."
+            )
         )
 
         fun apkSigningProvider(): PQAuthProviderMetadata = PQAuthProviderMetadata(
@@ -166,13 +259,21 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
             auditStatus = PQAuthGateStatus.APPROVED,
             benchmarkStatus = PQAuthGateStatus.PENDING,
             sideChannelReviewStatus = PQAuthGateStatus.PENDING,
-            usage = PQAuthProviderUsage.DISTRIBUTION_IDENTITY_ONLY
+            usage = PQAuthProviderUsage.DISTRIBUTION_IDENTITY_ONLY,
+            evidence = PQAuthEvidenceReferences(
+                providerSourceId = "android-pqc-apk-signing-docs-2026-06-04",
+                providerVersion = "Android 17 APK signing documentation",
+                license = "Android documentation content license",
+                auditReportId = "android-apk-signing-doc-review-2026-06-04",
+                remainingRisk = "Distribution identity only; not eligible for trust-state authentication."
+            )
         )
 
         fun pureKotlinFallback(
             productionApproved: Boolean,
             usesCOrFFI: Boolean = false,
-            nativeLibraryDependency: Boolean = false
+            nativeLibraryDependency: Boolean = false,
+            evidence: PQAuthEvidenceReferences = PQAuthEvidenceReferences.none()
         ): PQAuthProviderMetadata = PQAuthProviderMetadata(
             providerId = if (productionApproved) {
                 "android.pure-kotlin.mldsa65.approved"
@@ -194,7 +295,8 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
             auditStatus = if (productionApproved) PQAuthGateStatus.APPROVED else PQAuthGateStatus.PENDING,
             benchmarkStatus = if (productionApproved) PQAuthGateStatus.APPROVED else PQAuthGateStatus.PENDING,
             sideChannelReviewStatus = if (productionApproved) PQAuthGateStatus.APPROVED else PQAuthGateStatus.PENDING,
-            usage = PQAuthProviderUsage.TRUST_STATE_AUTHENTICATION
+            usage = PQAuthProviderUsage.TRUST_STATE_AUTHENTICATION,
+            evidence = evidence
         )
     }
 }

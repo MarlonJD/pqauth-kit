@@ -37,13 +37,30 @@ All providers expose metadata with:
 - `auditStatus`
 - `benchmarkStatus`
 - `sideChannelReviewStatus`
+- `evidence.providerSourceId`
+- `evidence.providerVersion`
+- `evidence.providerCommit`
+- `evidence.license`
+- `evidence.conformanceVectorId`
+- `evidence.auditReportId`
+- `evidence.benchmarkReportId`
+- `evidence.sideChannelReviewId`
+- `evidence.remainingRisk`
 
 Fallback providers are production-ineligible unless audit, vector parity,
-benchmarks, and side-channel review are all approved. If `hybrid_auth_required`
-is active and no approved provider is available, clients fail closed rather than
-silently downgrading to Ed25519-only trust-state records.
+benchmarks, and side-channel review are all approved. If the required
+hybrid-auth profile is active and no approved provider is available, clients
+fail closed rather than silently downgrading to Ed25519-only trust-state
+records.
+
+Runtime provider selection and production readiness are separate decisions.
+Platform-native providers may be selectable when the OS/runtime supports them,
+but readiness remains blocked until evidence ids for conformance, audit,
+benchmark, and side-channel review are present and approved.
 
 ## Apple iOS And macOS
+
+Official documentation re-checked: 2026-06-04.
 
 Apple CryptoKit currently documents ML-DSA APIs for `MLDSA65` and `MLDSA87`,
 and Secure Enclave ML-DSA key APIs on supported hardware and OS releases:
@@ -60,14 +77,16 @@ Policy:
 - Select Secure Enclave ML-DSA only when non-exportable key lifecycle is
   compatible with account recovery, migration, and multi-device E2EE.
 - Below OS 26, use only an audited Swift fallback when explicitly enabled by
-  policy; otherwise fail closed for `hybrid_auth_required`.
+  policy; otherwise fail closed for the required hybrid-auth profile.
 - Do not add C, C++, Rust, assembly, vendored native libraries, dynamic native
   libraries, Metal/GPU acceleration, or FFI fallback paths.
 
 ## Android
 
+Official documentation re-checked: 2026-06-04.
+
 The Android 17 public developer feature for ML-DSA is hybrid APK signing. That
-protects app distribution identity and is not an app-facing E2EE trust-state
+protects app distribution identity and is not an app-facing trust-state
 signing provider:
 
 - https://developer.android.com/about/versions/17/features
@@ -90,6 +109,8 @@ Policy:
   dynamic native libraries, or FFI fallback paths.
 
 ## Windows And .NET
+
+Official documentation re-checked: 2026-06-04.
 
 .NET 10 documents `System.Security.Cryptography.MLDsa`, including
 `MLDsa.IsSupported`, key generation, import/export, sign, and verify APIs:

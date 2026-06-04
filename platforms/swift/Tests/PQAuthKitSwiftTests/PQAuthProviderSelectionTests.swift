@@ -73,7 +73,16 @@ final class PQAuthProviderSelectionTests: XCTestCase {
             .swiftFallback(
                 providerId: "swift.fallback.mldsa65.ios.approved-test",
                 parameterSet: .mldsa65,
-                productionApproved: true
+                productionApproved: true,
+                evidence: .complete(
+                    providerSourceId: "swift-fallback-test-source",
+                    providerVersion: "test-version",
+                    license: "test-license",
+                    conformanceVectorId: "test-conformance-vector",
+                    auditReportId: "test-audit-report",
+                    benchmarkReportId: "test-benchmark-report",
+                    sideChannelReviewId: "test-side-channel-review"
+                )
             )
         ])
 
@@ -97,6 +106,39 @@ final class PQAuthProviderSelectionTests: XCTestCase {
         XCTAssertEqual(selected.providerId, "swift.fallback.mldsa65.ios.approved-test")
         XCTAssertTrue(selected.fallbackAllowedInProduction)
         XCTAssertTrue(selected.hasApprovedProductionGates)
+        XCTAssertTrue(selected.isProductionReady)
+    }
+
+    func testApprovedStatusesWithoutEvidenceDoNotPassProductionReadiness() {
+        let provider = PQAuthProviderMetadata.swiftFallback(
+            providerId: "swift.fallback.mldsa65.ios.status-only-test",
+            parameterSet: .mldsa65,
+            productionApproved: true
+        )
+
+        XCTAssertTrue(provider.hasApprovedProductionGates)
+        XCTAssertFalse(provider.isProductionReady)
+        XCTAssertTrue(PQAuthReadinessGate.blockers(for: provider).contains("required_evidence_missing"))
+    }
+
+    func testNativeProviderSelectionDoesNotEqualProductionReadiness() throws {
+        let selected = try PQAuthProviderCatalog.apple(platform: .iOS).selectProvider(
+            policy: PQAuthProviderSelectionPolicy(platform: .iOS),
+            runtime: PQAuthRuntimeCapabilities(
+                osMajorVersion: 26,
+                cryptoKitMLDSA65Available: true,
+                cryptoKitMLDSA87Available: true,
+                secureEnclaveMLDSA65Available: true,
+                secureEnclaveMLDSA87Available: true,
+                auditedSwiftFallbackAvailable: false,
+                isAppleSiliconMac: false
+            )
+        )
+
+        XCTAssertEqual(selected.providerId, "apple.cryptokit.mldsa65.ios")
+        XCTAssertFalse(selected.isProductionReady)
+        XCTAssertTrue(PQAuthReadinessGate.blockers(for: selected).contains("benchmark_status_not_approved"))
+        XCTAssertTrue(PQAuthReadinessGate.blockers(for: selected).contains("side_channel_review_status_not_approved"))
     }
 
     func testDeterministicEntropyIsTestOnly() throws {

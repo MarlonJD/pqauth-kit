@@ -52,6 +52,76 @@ final class PQAuthVectorFixtureTests: XCTestCase {
         XCTAssertEqual(mldsa["signatureLength"] as? Int, PQAuthParameterSet.mldsa65.signatureLength)
     }
 
+    func testMLDSAConformanceFixtureIsProviderGeneratedCryptographicEvidence() throws {
+        let fixture = try loadConformanceFixture()
+        XCTAssertEqual(fixture["schema"] as? String, "pqauth-kit-mldsa-conformance-v1")
+        XCTAssertEqual(fixture["fixtureKind"] as? String, "cryptographic-provider-conformance")
+
+        let operations = try XCTUnwrap(fixture["operations"] as? [String])
+        XCTAssertTrue(operations.contains("keygen"))
+        XCTAssertTrue(operations.contains("sign"))
+        XCTAssertTrue(operations.contains("verify"))
+        XCTAssertTrue(operations.contains("public-key-import"))
+        XCTAssertTrue(operations.contains("private-key-import"))
+
+        if #available(iOS 26.0, macOS 26.0, *) {
+            let cases = try XCTUnwrap(fixture["cases"] as? [[String: Any]])
+            let entry = try XCTUnwrap(cases.first)
+            XCTAssertEqual(entry["trustStateObject"] as? String, PQAuthTrustStateObject.deviceIdentity.rawValue)
+            XCTAssertEqual(entry["signedBytesDomain"] as? String, PQAuthTrustStateObject.deviceIdentity.domainSeparator)
+
+            let canonicalBytes = Data(try XCTUnwrap(entry["canonicalBytesUtf8"] as? String).utf8)
+            let context = try Data(base64URL: XCTUnwrap(entry["context"] as? String))
+            let publicKeyFixture = try XCTUnwrap(entry["publicKey"] as? [String: Any])
+            let privateKeyFixture = try XCTUnwrap(entry["privateKey"] as? [String: Any])
+            let signatureFixture = try XCTUnwrap(entry["signature"] as? [String: Any])
+            let publicKeyData = try Data(base64URL: XCTUnwrap(publicKeyFixture["value"] as? String))
+            let privateKeyData = try Data(base64URL: XCTUnwrap(privateKeyFixture["value"] as? String))
+            let signature = try Data(base64URL: XCTUnwrap(signatureFixture["value"] as? String))
+
+            XCTAssertEqual(publicKeyData.count, PQAuthParameterSet.mldsa65.publicKeyLength)
+            XCTAssertEqual(signature.count, PQAuthParameterSet.mldsa65.signatureLength)
+
+            let publicKey = try MLDSA65.PublicKey(rawRepresentation: publicKeyData)
+            XCTAssertTrue(publicKey.isValidSignature(signature, for: canonicalBytes, context: context))
+            XCTAssertFalse(publicKey.isValidSignature(signature, for: Data("wrong canonical bytes".utf8), context: context))
+            XCTAssertFalse(publicKey.isValidSignature(signature, for: canonicalBytes, context: Data("wrong context".utf8)))
+            XCTAssertThrowsError(try MLDSA65.PublicKey(rawRepresentation: publicKeyData.dropLast()))
+
+            let privateKey = try MLDSA65.PrivateKey(integrityCheckedRepresentation: privateKeyData)
+            let regeneratedSignature = try privateKey.signature(for: canonicalBytes, context: context)
+            XCTAssertTrue(privateKey.publicKey.isValidSignature(regeneratedSignature, for: canonicalBytes, context: context))
+        }
+    }
+
+    func testReadinessEvidenceManifestLinksBenchmarkAndSideChannelEvidence() throws {
+        let readiness = try loadEvidenceFixture("readiness-gates-v1.json")
+        XCTAssertEqual(readiness["schema"] as? String, "pqauth-kit-readiness-gates-v1")
+
+        let providers = try XCTUnwrap(readiness["providers"] as? [[String: Any]])
+        let cryptoKit = try XCTUnwrap(providers.first { provider in
+            provider["providerId"] as? String == "apple.cryptokit.mldsa65.macos"
+        })
+        XCTAssertEqual(
+            cryptoKit["benchmarkReportId"] as? String,
+            "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04"
+        )
+        XCTAssertEqual(
+            cryptoKit["sideChannelReviewId"] as? String,
+            "apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04"
+        )
+        XCTAssertEqual(cryptoKit["productionReady"] as? Bool, false)
+
+        let benchmark = try loadEvidenceFixture("apple-cryptokit-mldsa65-macos-benchmark-2026-06-04.json")
+        XCTAssertEqual(benchmark["schema"] as? String, "pqauth-kit-benchmark-evidence-v1")
+        let operations = try XCTUnwrap(benchmark["operations"] as? [String: Any])
+        XCTAssertNotNil(operations["keygen"])
+        XCTAssertNotNil(operations["sign"])
+        XCTAssertNotNil(operations["verify"])
+        XCTAssertNotNil(operations["malformedPublicKeyRejection"])
+        XCTAssertNotNil(operations["malformedSignatureRejection"])
+    }
+
     private func loadFixture() throws -> [String: Any] {
         let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("../../vectors/hybrid-trust-state-v1.json")
@@ -59,9 +129,40 @@ final class PQAuthVectorFixtureTests: XCTestCase {
         let data = try Data(contentsOf: url)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
+
+    private func loadConformanceFixture() throws -> [String: Any] {
+        let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            .appendingPathComponent("../../vectors/mldsa-conformance-v1.json")
+            .standardizedFileURL
+        let data = try Data(contentsOf: url)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    }
+
+    private func loadEvidenceFixture(_ name: String) throws -> [String: Any] {
+        let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            .appendingPathComponent("../../docs/evidence")
+            .appendingPathComponent(name)
+            .standardizedFileURL
+        let data = try Data(contentsOf: url)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    }
 }
 
 private extension Data {
+    init(base64URL value: String) throws {
+        var base64 = value
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let padding = (4 - base64.count % 4) % 4
+        base64.append(String(repeating: "=", count: padding))
+
+        guard let data = Data(base64Encoded: base64) else {
+            throw NSError(domain: "PQAuthVectorFixtureTests", code: 1)
+        }
+
+        self = data
+    }
+
     func base64URLEncodedString() -> String {
         base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")

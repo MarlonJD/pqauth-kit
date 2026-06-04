@@ -79,6 +79,21 @@ public struct PQAuthProviderCatalog: Sendable {
 
     public static func apple(platform: PQAuthPlatform) -> Self {
         let osName = platform.rawValue
+        let cryptoKitMLDSA65Evidence = PQAuthEvidenceReferences.appleCryptoKitDocs(
+            providerVersion: "\(osName) 26.0 SDK documentation",
+            conformanceVectorId: platform == .macOS ? "apple-cryptokit-mldsa65-device-identity-2026-06-04" : nil,
+            benchmarkReportId: platform == .macOS ? "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04" : nil,
+            sideChannelReviewId: platform == .macOS ? "apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04" : nil,
+            remainingRisk: "Additional provider conformance, release-device benchmark, and side-channel evidence remain pending."
+        )
+        let cryptoKitMLDSA87Evidence = PQAuthEvidenceReferences.appleCryptoKitDocs(
+            providerVersion: "\(osName) 26.0 SDK documentation",
+            remainingRisk: "Provider conformance, release-device benchmark, and side-channel evidence remain pending."
+        )
+        let secureEnclaveEvidence = PQAuthEvidenceReferences.appleSecureEnclaveDocs(
+            providerVersion: "\(osName) 26.0 SDK documentation",
+            remainingRisk: "Provider conformance, lifecycle approval, release-device benchmark, and side-channel evidence remain pending."
+        )
         return Self(providers: [
             PQAuthProviderMetadata(
                 providerId: "apple.cryptokit.mldsa65.\(osName.lowercased())",
@@ -95,7 +110,8 @@ public struct PQAuthProviderCatalog: Sendable {
                 fallbackAllowedInProduction: false,
                 auditStatus: .approved,
                 benchmarkStatus: .pending,
-                sideChannelReviewStatus: .pending
+                sideChannelReviewStatus: .pending,
+                evidence: cryptoKitMLDSA65Evidence
             ),
             PQAuthProviderMetadata(
                 providerId: "apple.cryptokit.mldsa87.\(osName.lowercased())",
@@ -112,7 +128,8 @@ public struct PQAuthProviderCatalog: Sendable {
                 fallbackAllowedInProduction: false,
                 auditStatus: .approved,
                 benchmarkStatus: .pending,
-                sideChannelReviewStatus: .pending
+                sideChannelReviewStatus: .pending,
+                evidence: cryptoKitMLDSA87Evidence
             ),
             PQAuthProviderMetadata(
                 providerId: "apple.secure-enclave.mldsa65.\(osName.lowercased())",
@@ -129,7 +146,8 @@ public struct PQAuthProviderCatalog: Sendable {
                 fallbackAllowedInProduction: false,
                 auditStatus: .approved,
                 benchmarkStatus: .pending,
-                sideChannelReviewStatus: .pending
+                sideChannelReviewStatus: .pending,
+                evidence: secureEnclaveEvidence
             ),
             PQAuthProviderMetadata(
                 providerId: "apple.secure-enclave.mldsa87.\(osName.lowercased())",
@@ -146,7 +164,8 @@ public struct PQAuthProviderCatalog: Sendable {
                 fallbackAllowedInProduction: false,
                 auditStatus: .approved,
                 benchmarkStatus: .pending,
-                sideChannelReviewStatus: .pending
+                sideChannelReviewStatus: .pending,
+                evidence: secureEnclaveEvidence
             ),
             PQAuthProviderMetadata.swiftFallback(
                 providerId: "swift.fallback.mldsa65.\(osName.lowercased())",
@@ -226,11 +245,9 @@ public struct PQAuthProviderCatalog: Sendable {
             return false
         }
 
-        if policy.isProduction {
-            return provider.fallbackAllowedInProduction && provider.hasApprovedProductionGates
-        }
-
-        return provider.hasApprovedProductionGates
+        return policy.isProduction
+            ? provider.fallbackAllowedInProduction && provider.isProductionReady
+            : provider.isProductionReady
     }
 }
 
@@ -238,7 +255,8 @@ public extension PQAuthProviderMetadata {
     static func swiftFallback(
         providerId: String,
         parameterSet: PQAuthParameterSet,
-        productionApproved: Bool
+        productionApproved: Bool,
+        evidence: PQAuthEvidenceReferences = .none
     ) -> Self {
         Self(
             providerId: providerId,
@@ -255,7 +273,63 @@ public extension PQAuthProviderMetadata {
             fallbackAllowedInProduction: productionApproved,
             auditStatus: productionApproved ? .approved : .pending,
             benchmarkStatus: productionApproved ? .approved : .pending,
-            sideChannelReviewStatus: productionApproved ? .approved : .pending
+            sideChannelReviewStatus: productionApproved ? .approved : .pending,
+            evidence: evidence
+        )
+    }
+}
+
+public extension PQAuthEvidenceReferences {
+    static func complete(
+        providerSourceId: String,
+        providerVersion: String,
+        providerCommit: String? = nil,
+        license: String,
+        conformanceVectorId: String,
+        auditReportId: String,
+        benchmarkReportId: String,
+        sideChannelReviewId: String,
+        remainingRisk: String? = nil
+    ) -> Self {
+        Self(
+            providerSourceId: providerSourceId,
+            providerVersion: providerVersion,
+            providerCommit: providerCommit,
+            license: license,
+            conformanceVectorId: conformanceVectorId,
+            auditReportId: auditReportId,
+            benchmarkReportId: benchmarkReportId,
+            sideChannelReviewId: sideChannelReviewId,
+            remainingRisk: remainingRisk
+        )
+    }
+
+    static func appleCryptoKitDocs(
+        providerVersion: String,
+        conformanceVectorId: String? = nil,
+        benchmarkReportId: String? = nil,
+        sideChannelReviewId: String? = nil,
+        remainingRisk: String
+    ) -> Self {
+        Self(
+            providerSourceId: "apple-cryptokit-mldsa-docs-2026-06-04",
+            providerVersion: providerVersion,
+            license: "Apple Developer Documentation",
+            conformanceVectorId: conformanceVectorId,
+            auditReportId: "apple-platform-provider-doc-review-2026-06-04",
+            benchmarkReportId: benchmarkReportId,
+            sideChannelReviewId: sideChannelReviewId,
+            remainingRisk: remainingRisk
+        )
+    }
+
+    static func appleSecureEnclaveDocs(providerVersion: String, remainingRisk: String) -> Self {
+        Self(
+            providerSourceId: "apple-secure-enclave-mldsa-docs-2026-06-04",
+            providerVersion: providerVersion,
+            license: "Apple Developer Documentation",
+            auditReportId: "apple-secure-enclave-provider-doc-review-2026-06-04",
+            remainingRisk: remainingRisk
         )
     }
 }
