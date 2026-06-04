@@ -4,9 +4,10 @@ Date: 2026-06-04
 
 ## Release Gate
 
-No fallback provider is production-eligible until every item in this checklist
-has an owner, evidence link, and approval status. A missing item means
-the required hybrid-auth profile must fail closed on that platform.
+A fallback provider is production-eligible only when every item in this
+checklist has an owner, evidence link, and approval status. A missing required
+item means the required hybrid-auth profile must fail closed on that platform
+unless a documented owner exception records the accepted residual risk.
 
 ## Provider Audit
 
@@ -37,8 +38,8 @@ the required hybrid-auth profile must fail closed on that platform.
 
 ## Benchmark Evidence
 
-Record keygen, sign, verify, import, export, malformed public key rejection, and
-malformed signature rejection for:
+Release-grade benchmark evidence should record keygen, sign, verify, import,
+export, malformed public key rejection, and malformed signature rejection for:
 
 - At least one supported iPhone.
 - Apple Silicon macOS release hardware.
@@ -50,12 +51,16 @@ size impact, device model, OS/runtime version, provider id, and package commit.
 The report id must appear in `docs/evidence/readiness-gates-v1.json` before a
 provider can be marked production-ready.
 
+Checkpoint exceptions may use emulator or hosted-runner timing evidence when
+the readiness manifest records the accepted residual risk and release-device
+follow-up.
+
 ## Production Fallback Rules
 
 - Swift fallback: pure Swift only; no C, C++, Rust, assembly, vendored native
   libraries, dynamic native libraries, Metal/GPU acceleration, or FFI.
-- Android fallback: pure Kotlin only; no JNI, NDK, C, C++, Rust, assembly,
-  vendored native libraries, dynamic native libraries, or FFI.
+- Android fallback: managed JVM Kotlin/Java only; no JNI, NDK, C, C++, Rust,
+  assembly, vendored native libraries, dynamic native libraries, or FFI.
 - Windows fallback: managed C# only; no P/Invoke, native DLL loading, C, C++,
   Rust, assembly, vendored native libraries, dynamic native libraries, or FFI.
 

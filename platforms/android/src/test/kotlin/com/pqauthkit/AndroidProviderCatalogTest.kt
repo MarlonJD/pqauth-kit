@@ -15,7 +15,7 @@ class AndroidProviderCatalogTest {
                 apiLevel = 37,
                 documentedAppFacingMldsaProviderAvailable = true,
                 pqcApkSigningAvailable = true,
-                auditedPureKotlinFallbackAvailable = false
+                auditedFallbackAvailable = false
             )
         )
 
@@ -33,7 +33,7 @@ class AndroidProviderCatalogTest {
                     apiLevel = 37,
                     documentedAppFacingMldsaProviderAvailable = false,
                     pqcApkSigningAvailable = true,
-                    auditedPureKotlinFallbackAvailable = false
+                    auditedFallbackAvailable = false
                 )
             )
         }
@@ -58,13 +58,32 @@ class AndroidProviderCatalogTest {
                 apiLevel = 35,
                 documentedAppFacingMldsaProviderAvailable = false,
                 pqcApkSigningAvailable = false,
-                auditedPureKotlinFallbackAvailable = true
+                auditedFallbackAvailable = true
             )
         )
 
         assertEquals("android.pure-kotlin.mldsa65.approved", selected.providerId)
         assertTrue(selected.fallbackAllowedInProduction)
         assertTrue(selected.hasApprovedProductionGates)
+        assertTrue(selected.isProductionReady)
+    }
+
+    @Test
+    fun `default catalog selects managed ML-DSA fallback on Android when policy allows it`() {
+        val selected = AndroidProviderCatalog.default().selectProvider(
+            policy = AndroidProviderSelectionPolicy(allowAuditedFallback = true),
+            runtime = AndroidRuntimeCapabilities(
+                apiLevel = 37,
+                documentedAppFacingMldsaProviderAvailable = false,
+                pqcApkSigningAvailable = true,
+                auditedFallbackAvailable = true
+            )
+        )
+
+        assertEquals("android.bouncycastle-jvm.mldsa65", selected.providerId)
+        assertFalse(selected.usesCOrFFI)
+        assertFalse(selected.nativeLibraryDependency)
+        assertTrue(selected.fallbackAllowedInProduction)
         assertTrue(selected.isProductionReady)
     }
 
@@ -85,7 +104,7 @@ class AndroidProviderCatalogTest {
                 apiLevel = 37,
                 documentedAppFacingMldsaProviderAvailable = true,
                 pqcApkSigningAvailable = true,
-                auditedPureKotlinFallbackAvailable = false
+                auditedFallbackAvailable = false
             )
         )
 
@@ -115,7 +134,7 @@ class AndroidProviderCatalogTest {
                     apiLevel = 35,
                     documentedAppFacingMldsaProviderAvailable = false,
                     pqcApkSigningAvailable = false,
-                    auditedPureKotlinFallbackAvailable = true
+                    auditedFallbackAvailable = true
                 )
             )
         }

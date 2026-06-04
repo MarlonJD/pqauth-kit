@@ -33,7 +33,8 @@ libraries, Metal/GPU acceleration, C, C++, Rust, or assembly fallbacks.
 - `vectors/`: Shared hybrid trust-state structural vectors and provider-backed
   ML-DSA conformance evidence.
 - `platforms/swift/`: Swift package for iOS and macOS provider policy.
-- `platforms/android/`: Kotlin/Gradle package for Android provider policy.
+- `platforms/android/`: Kotlin/Gradle package for Android provider policy and
+  managed JVM ML-DSA fallback.
 - `platforms/dotnet/`: .NET package for Windows provider policy.
 
 ## Verification
@@ -47,7 +48,7 @@ cd platforms/dotnet && DOTNET_CLI_HOME=/private/tmp dotnet test
 git diff --check
 ```
 
-The first implementation stage is policy and contract scaffolding. Pure
-language ML-DSA fallback implementations are intentionally not enabled for
-production until the audit, vector parity, benchmark, and side-channel gates are
-closed.
+Production fallback selection remains evidence-gated. Android currently has an
+approved managed JVM ML-DSA fallback with emulator conformance and benchmark
+evidence; other fallback paths remain blocked until their audit, vector parity,
+benchmark, and side-channel gates are closed.

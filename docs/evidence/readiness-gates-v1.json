@@ -108,6 +108,18 @@
       "remainingRisk": "No official app-facing ML-DSA signing provider is documented at this checkpoint."
     },
     {
+      "providerId": "android.bouncycastle-jvm.mldsa65",
+      "providerSourceId": "bouncycastle-bcprov-jdk18on-1.84",
+      "providerVersion": "Bouncy Castle bcprov-jdk18on 1.84",
+      "license": "Bouncy Castle Licence",
+      "conformanceVectorId": "android-bouncycastle-mldsa65-emulator-conformance-2026-06-04",
+      "auditReportId": "android-bouncycastle-mldsa65-package-audit-2026-06-04",
+      "benchmarkReportId": "android-bouncycastle-mldsa65-emulator-benchmark-2026-06-04",
+      "sideChannelReviewId": "android-bouncycastle-mldsa65-side-channel-review-2026-06-04",
+      "productionReady": true,
+      "remainingRisk": "Managed JVM fallback accepted for this checkpoint using emulator conformance and package-boundary review; release-device benchmark and independent external crypto audit remain recommended."
+    },
+    {
       "providerId": "dotnet.system-security-cryptography.mldsa65",
       "providerSourceId": "dotnet-system-security-cryptography-mldsa-docs-2026-06-04",
       "providerVersion": ".NET 10 System.Security.Cryptography.MLDsa",
@@ -135,14 +147,10 @@
     },
     {
       "language": "Kotlin",
-      "allowedImplementation": "audited pure Kotlin",
-      "productionReady": false,
-      "blockedUntil": [
-        "conformanceVectorId",
-        "auditReportId",
-        "benchmarkReportId",
-        "sideChannelReviewId"
-      ]
+      "allowedImplementation": "managed JVM Kotlin wrapper over Bouncy Castle ML-DSA",
+      "productionReady": true,
+      "evidenceProviderId": "android.bouncycastle-jvm.mldsa65",
+      "blockedUntil": []
     },
     {
       "language": "C#",

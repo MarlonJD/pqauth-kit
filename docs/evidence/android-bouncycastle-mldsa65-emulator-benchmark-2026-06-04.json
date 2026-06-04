@@ -1,0 +1,34 @@
+{
+  "schema": "pqauth-kit-android-benchmark-evidence-v1",
+  "benchmarkReportId": "android-bouncycastle-mldsa65-emulator-benchmark-2026-06-04",
+  "providerId": "android.bouncycastle-jvm.mldsa65",
+  "providerVersion": "Bouncy Castle bcprov-jdk18on 1.84",
+  "benchmarkDate": "2026-06-04",
+  "runtime": "Android emulator dalvikvm",
+  "apiLevel": 37,
+  "model": "sdk_gphone16k_arm64",
+  "abi": "arm64-v8a",
+  "javaVm": "2.1.0",
+  "iterations": 20,
+  "operations": {
+    "keygen": {
+      "minNanos": 338292,
+      "p50Nanos": 495542,
+      "p95Nanos": 2284875,
+      "maxNanos": 15490791
+    },
+    "sign": {
+      "minNanos": 876042,
+      "p50Nanos": 1448958,
+      "p95Nanos": 14348625,
+      "maxNanos": 14976416
+    },
+    "verify": {
+      "minNanos": 331417,
+      "p50Nanos": 483625,
+      "p95Nanos": 1821042,
+      "maxNanos": 2021000
+    }
+  },
+  "remainingRisk": "Emulator timing evidence accepted for this checkpoint; release-device benchmark remains recommended."
+}

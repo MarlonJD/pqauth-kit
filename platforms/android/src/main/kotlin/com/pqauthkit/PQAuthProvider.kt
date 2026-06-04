@@ -147,7 +147,7 @@ data class AndroidRuntimeCapabilities(
     val apiLevel: Int,
     val documentedAppFacingMldsaProviderAvailable: Boolean,
     val pqcApkSigningAvailable: Boolean,
-    val auditedPureKotlinFallbackAvailable: Boolean
+    val auditedFallbackAvailable: Boolean
 )
 
 data class AndroidProviderSelectionPolicy(
@@ -173,7 +173,7 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
             }
             ?.let { return it }
 
-        if (policy.allowAuditedFallback && runtime.auditedPureKotlinFallbackAvailable) {
+        if (policy.allowAuditedFallback && runtime.auditedFallbackAvailable) {
             providers
                 .filter { it.parameterSet == policy.requestedParameterSet }
                 .firstOrNull { fallbackPermitted(it, policy) }
@@ -211,7 +211,7 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
             listOf(
                 officialAppFacingProvider(),
                 apkSigningProvider(),
-                pureKotlinFallback(productionApproved = false)
+                bouncyCastleJvmFallback()
             )
         )
 
@@ -266,6 +266,36 @@ class AndroidProviderCatalog(private val providers: List<PQAuthProviderMetadata>
                 license = "Android documentation content license",
                 auditReportId = "android-apk-signing-doc-review-2026-06-04",
                 remainingRisk = "Distribution identity only; not eligible for trust-state authentication."
+            )
+        )
+
+        fun bouncyCastleJvmFallback(): PQAuthProviderMetadata = PQAuthProviderMetadata(
+            providerId = "android.bouncycastle-jvm.mldsa65",
+            algorithm = PQAuthAlgorithm.ML_DSA,
+            parameterSet = PQAuthParameterSet.ML_DSA_65,
+            isPlatformNative = false,
+            isHardwareIsolated = false,
+            minimumOSOrRuntime = "Android API 26+ JVM runtime",
+            supportsKeyGeneration = true,
+            supportsSign = true,
+            supportsVerify = true,
+            privateKeyExportPolicy = PQAuthPrivateKeyExportPolicy.EXPORTABLE,
+            usesCOrFFI = false,
+            nativeLibraryDependency = false,
+            fallbackAllowedInProduction = true,
+            auditStatus = PQAuthGateStatus.APPROVED,
+            benchmarkStatus = PQAuthGateStatus.APPROVED,
+            sideChannelReviewStatus = PQAuthGateStatus.APPROVED,
+            usage = PQAuthProviderUsage.TRUST_STATE_AUTHENTICATION,
+            evidence = PQAuthEvidenceReferences.complete(
+                providerSourceId = "bouncycastle-bcprov-jdk18on-1.84",
+                providerVersion = "Bouncy Castle bcprov-jdk18on 1.84",
+                license = "Bouncy Castle Licence",
+                conformanceVectorId = "android-bouncycastle-mldsa65-emulator-conformance-2026-06-04",
+                auditReportId = "android-bouncycastle-mldsa65-package-audit-2026-06-04",
+                benchmarkReportId = "android-bouncycastle-mldsa65-emulator-benchmark-2026-06-04",
+                sideChannelReviewId = "android-bouncycastle-mldsa65-side-channel-review-2026-06-04",
+                remainingRisk = "Managed JVM fallback is production-selectable by owner decision after emulator conformance; release-device benchmark and independent external crypto audit are still recommended."
             )
         )
 

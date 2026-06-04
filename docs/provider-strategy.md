@@ -98,13 +98,27 @@ app-facing ML-DSA signing primitive is documented at this checkpoint:
 - https://source.android.com/docs/security/features/keystore
 - https://source.android.com/docs/security/features/keystore/features
 
+Managed fallback evidence:
+
+- `android.bouncycastle-jvm.mldsa65` uses `org.bouncycastle:bcprov-jdk18on:1.84`
+  through the Android JVM runtime.
+- The fallback has no JNI, NDK, FFI, native dynamic library, vendored native
+  library, GPU, C, C++, Rust, assembly, or platform-private dependency.
+- Emulator conformance and benchmark evidence are recorded in
+  `vectors/android-bouncycastle-mldsa-conformance-v1.json` and
+  `docs/evidence/android-bouncycastle-mldsa65-emulator-benchmark-2026-06-04.json`.
+- Package-boundary audit and side-channel reviews are recorded in
+  `docs/evidence/android-bouncycastle-mldsa65-package-audit-2026-06-04.md` and
+  `docs/evidence/android-bouncycastle-mldsa65-side-channel-review-2026-06-04.md`.
+
 Policy:
 
 - Treat Android 17 PQC APK signing as distribution identity only.
 - Use Android Keystore only for storage or wrapping of supported key material.
 - Do not claim hardware-backed ML-DSA E2EE signing until Android exposes a
   documented app-facing provider.
-- Use only an audited pure Kotlin fallback when all production gates are closed.
+- Use the approved managed JVM ML-DSA fallback when `allowAuditedFallback` is
+  enabled and the runtime has no documented app-facing ML-DSA provider.
 - Do not add JNI, NDK, C, C++, Rust, assembly, vendored native libraries,
   dynamic native libraries, or FFI fallback paths.
 
@@ -133,8 +147,9 @@ The default package policy is conservative:
 
 - Apple OS 26+ native providers may be selected when runtime capabilities are
   available.
-- Android fails closed for hybrid-auth unless an approved app-facing provider or
-  audited Kotlin fallback is explicitly supplied.
+- Android selects the approved managed JVM ML-DSA fallback when policy permits
+  audited fallback; otherwise it fails closed until an app-facing provider is
+  documented.
 - Windows selects .NET `MLDsa` only when `IsSupported` is true, otherwise fails
   closed unless an audited managed fallback is explicitly supplied.
 - Deterministic entropy is test-only and unavailable to production APIs.

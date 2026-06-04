@@ -47,7 +47,7 @@ class SharedVectorFixtureTest {
 
     @Test
     fun `ML-DSA conformance fixture is cryptographic and separate from structural vectors`() {
-        val json = conformanceFixture().readText()
+        val json = conformanceFixture("mldsa-conformance-v1.json").readText()
         assertTrue(json.contains("\"schema\" : \"pqauth-kit-mldsa-conformance-v1\""))
         assertTrue(json.contains("\"fixtureKind\" : \"cryptographic-provider-conformance\""))
         assertTrue(json.contains("\"providerId\" : \"apple.cryptokit.mldsa65.macos\""))
@@ -60,6 +60,26 @@ class SharedVectorFixtureTest {
         assertTrue(json.contains("\"length\" : ${PQAuthParameterSet.ML_DSA_65.publicKeyLength}"))
         assertTrue(json.contains("\"length\" : ${PQAuthParameterSet.ML_DSA_65.signatureLength}"))
         assertFalse(json.contains("\"fixtureKind\" : \"structural-non-cryptographic\""))
+    }
+
+    @Test
+    fun `Android managed ML-DSA conformance fixture is linked to approved evidence`() {
+        val json = conformanceFixture("android-bouncycastle-mldsa-conformance-v1.json").readText()
+        assertTrue(json.contains("\"schema\": \"pqauth-kit-mldsa-conformance-v1\""))
+        assertTrue(json.contains("\"fixtureKind\": \"cryptographic-provider-conformance\""))
+        assertTrue(json.contains("\"providerId\": \"android.bouncycastle-jvm.mldsa65\""))
+        assertTrue(json.contains("\"providerSourceId\": \"bouncycastle-bcprov-jdk18on-1.84\""))
+        assertTrue(json.contains("\"runtime\": \"Android emulator dalvikvm\""))
+        assertTrue(json.contains("\"public-key-import\""))
+        assertTrue(json.contains("\"private-key-import\""))
+        assertTrue(json.contains("\"signed-bytes-mismatch-rejection\""))
+        assertTrue(json.contains("\"wrong-context-rejection\""))
+        assertTrue(json.contains("\"malformed-public-key-rejection\""))
+        assertTrue(json.contains("\"malformed-signature-rejection\""))
+        assertTrue(json.contains("\"length\": ${PQAuthParameterSet.ML_DSA_65.publicKeyLength}"))
+        assertTrue(json.contains("\"length\": ${PQAuthParameterSet.ML_DSA_65.privateKeyLength}"))
+        assertTrue(json.contains("\"length\": ${PQAuthParameterSet.ML_DSA_65.signatureLength}"))
+        assertFalse(json.contains("\"fixtureKind\": \"structural-non-cryptographic\""))
     }
 
     @Test
@@ -80,12 +100,32 @@ class SharedVectorFixtureTest {
         assertTrue(benchmark.contains("\"malformedSignatureRejection\""))
     }
 
+    @Test
+    fun `readiness evidence manifest links Android fallback evidence`() {
+        val readiness = evidenceFixture("readiness-gates-v1.json").readText()
+        assertTrue(readiness.contains("\"providerId\": \"android.bouncycastle-jvm.mldsa65\""))
+        assertTrue(readiness.contains("\"providerSourceId\": \"bouncycastle-bcprov-jdk18on-1.84\""))
+        assertTrue(readiness.contains("\"conformanceVectorId\": \"android-bouncycastle-mldsa65-emulator-conformance-2026-06-04\""))
+        assertTrue(readiness.contains("\"auditReportId\": \"android-bouncycastle-mldsa65-package-audit-2026-06-04\""))
+        assertTrue(readiness.contains("\"benchmarkReportId\": \"android-bouncycastle-mldsa65-emulator-benchmark-2026-06-04\""))
+        assertTrue(readiness.contains("\"sideChannelReviewId\": \"android-bouncycastle-mldsa65-side-channel-review-2026-06-04\""))
+        assertTrue(readiness.contains("\"evidenceProviderId\": \"android.bouncycastle-jvm.mldsa65\""))
+
+        val benchmark = evidenceFixture("android-bouncycastle-mldsa65-emulator-benchmark-2026-06-04.json").readText()
+        assertTrue(benchmark.contains("\"schema\": \"pqauth-kit-android-benchmark-evidence-v1\""))
+        assertTrue(benchmark.contains("\"providerId\": \"android.bouncycastle-jvm.mldsa65\""))
+        assertTrue(benchmark.contains("\"runtime\": \"Android emulator dalvikvm\""))
+        assertTrue(benchmark.contains("\"keygen\""))
+        assertTrue(benchmark.contains("\"sign\""))
+        assertTrue(benchmark.contains("\"verify\""))
+    }
+
     private fun vectorFixture(): File {
         return File("../../vectors/hybrid-trust-state-v1.json").canonicalFile
     }
 
-    private fun conformanceFixture(): File {
-        return File("../../vectors/mldsa-conformance-v1.json").canonicalFile
+    private fun conformanceFixture(name: String): File {
+        return File("../../vectors/$name").canonicalFile
     }
 
     private fun evidenceFixture(name: String): File {
