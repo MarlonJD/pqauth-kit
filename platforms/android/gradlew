@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if command -v gradle >/dev/null 2>&1; then
+  exec gradle "$@"
+fi
+
+MONOREPO_WRAPPER="$SCRIPT_DIR/../../../../apps/android/gradlew"
+if [[ -x "$MONOREPO_WRAPPER" ]]; then
+  exec "$MONOREPO_WRAPPER" --project-dir "$SCRIPT_DIR" "$@"
+fi
+
+echo "gradle is not installed and no monorepo Gradle wrapper was found" >&2
+exit 1

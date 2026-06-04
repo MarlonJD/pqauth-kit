@@ -1,0 +1,46 @@
+# FIPS 204 Code Map
+
+Date: 2026-06-04
+
+## Status
+
+This map records the package-level ML-DSA contract and provider gates. It
+does not certify an implementation and does not claim FIPS 140 validation.
+
+## Parameter Sets
+
+| Parameter set | Private key bytes | Public key bytes | Signature bytes | Package status |
+| --- | ---: | ---: | ---: | --- |
+| ML-DSA-44 | 2560 | 1312 | 2420 | Not selected for trust-state v1 |
+| ML-DSA-65 | 4032 | 1952 | 3309 | Default candidate |
+| ML-DSA-87 | 4896 | 2592 | 4627 | Allowed when provider or hardware policy requires it |
+
+The sizes above come from NIST FIPS 204:
+https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf
+
+## Required Code Paths
+
+Every provider implementation must map these FIPS 204 behaviors before
+production use:
+
+- Key generation for the selected parameter set.
+- Public key import and export in raw FIPS 204 form.
+- Private key import and export or a documented non-exportable lifecycle.
+- Signing with the package domain context.
+- Verification with the same canonical bytes and package domain context.
+- Rejection of malformed public keys and malformed signatures by length before
+  provider calls where practical.
+- Rejection of unsupported parameter sets.
+- Deterministic test entropy isolation from production signing APIs.
+
+## Trust-State Domains
+
+- `pqauth-kit-account-identity-hybrid-auth-v1`
+- `pqauth-kit-device-identity-hybrid-auth-v1`
+- `pqauth-kit-device-roster-hybrid-auth-v1`
+- `pqauth-kit-ratchet-prekey-bundle-hybrid-auth-v1`
+- `pqauth-kit-safety-number-hybrid-auth-v1`
+- `pqauth-kit-envelope-pq-signature-v1-experimental`
+
+The first five domains are in the default hybrid-auth trust-state profile. The
+envelope PQ signature domain is experimental and disabled by default.

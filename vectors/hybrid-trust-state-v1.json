@@ -1,0 +1,149 @@
+{
+  "schema": "pqauth-kit-hybrid-trust-state-v1",
+  "version": 1,
+  "fixtureKind": "structural-non-cryptographic",
+  "policy": "ed25519_and_mldsa_required",
+  "algorithms": {
+    "ed25519": {
+      "publicKeyLength": 32,
+      "signatureLength": 64
+    },
+    "mldsa": {
+      "algorithm": "ML-DSA",
+      "parameterSet": "ML-DSA-65",
+      "privateKeyLength": 4032,
+      "publicKeyLength": 1952,
+      "signatureLength": 3309
+    }
+  },
+  "domainSeparators": [
+    "pqauth-kit-account-identity-hybrid-auth-v1",
+    "pqauth-kit-device-identity-hybrid-auth-v1",
+    "pqauth-kit-device-roster-hybrid-auth-v1",
+    "pqauth-kit-ratchet-prekey-bundle-hybrid-auth-v1",
+    "pqauth-kit-safety-number-hybrid-auth-v1",
+    "pqauth-kit-envelope-pq-signature-v1-experimental"
+  ],
+  "positiveCases": [
+    {
+      "id": "account_identity",
+      "trustStateObject": "account_identity",
+      "signedBytesDomain": "pqauth-kit-account-identity-hybrid-auth-v1",
+      "canonicalBytesUtf8": "{\"accountId\":\"acct-fixture-001\",\"displayName\":\"Fixture Account\",\"identityVersion\":1}",
+      "signedBytesHash": "yeNYF7Tc7zEWAvPgZmEWMButnedURhM3cq_CIKKMgZA",
+      "hybridSignature": {
+        "ed25519": {
+          "keyId": "ed25519-account-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "11", "length": 32 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "21", "length": 64 }
+        },
+        "mldsa": {
+          "algorithm": "ML-DSA-65",
+          "keyId": "mldsa-account-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "31", "length": 1952 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "41", "length": 3309 },
+          "context": "cHFhdXRoLWtpdC1hY2NvdW50LWlkZW50aXR5LWh5YnJpZC1hdXRoLXYx"
+        }
+      }
+    },
+    {
+      "id": "device_identity",
+      "trustStateObject": "device_identity",
+      "signedBytesDomain": "pqauth-kit-device-identity-hybrid-auth-v1",
+      "canonicalBytesUtf8": "{\"accountId\":\"acct-fixture-001\",\"deviceId\":\"device-fixture-ios\",\"deviceLabel\":\"iPhone fixture\",\"identityVersion\":1}",
+      "signedBytesHash": "pSxi3rPdjACY0mCeya3jVnWeJIDGOxvTaEncNp6dkFE",
+      "hybridSignature": {
+        "ed25519": {
+          "keyId": "ed25519-device-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "12", "length": 32 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "22", "length": 64 }
+        },
+        "mldsa": {
+          "algorithm": "ML-DSA-65",
+          "keyId": "mldsa-device-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "32", "length": 1952 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "42", "length": 3309 },
+          "context": "cHFhdXRoLWtpdC1kZXZpY2UtaWRlbnRpdHktaHlicmlkLWF1dGgtdjE"
+        }
+      }
+    },
+    {
+      "id": "roster_publish",
+      "trustStateObject": "roster_publish",
+      "signedBytesDomain": "pqauth-kit-device-roster-hybrid-auth-v1",
+      "canonicalBytesUtf8": "{\"accountId\":\"acct-fixture-001\",\"devices\":[\"device-fixture-ios\",\"device-fixture-macos\"],\"rosterVersion\":7}",
+      "signedBytesHash": "JN0UoPjSKl4YP9tQtBJWQlyFvppqbysQDRKnIuoOzps",
+      "hybridSignature": {
+        "ed25519": {
+          "keyId": "ed25519-roster-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "13", "length": 32 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "23", "length": 64 }
+        },
+        "mldsa": {
+          "algorithm": "ML-DSA-65",
+          "keyId": "mldsa-roster-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "33", "length": 1952 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "43", "length": 3309 },
+          "context": "cHFhdXRoLWtpdC1kZXZpY2Utcm9zdGVyLWh5YnJpZC1hdXRoLXYx"
+        }
+      }
+    },
+    {
+      "id": "prekey_bundle",
+      "trustStateObject": "prekey_bundle",
+      "signedBytesDomain": "pqauth-kit-ratchet-prekey-bundle-hybrid-auth-v1",
+      "canonicalBytesUtf8": "{\"deviceId\":\"device-fixture-ios\",\"prekeyId\":\"prekey-fixture-0001\",\"prekeyVersion\":3}",
+      "signedBytesHash": "JilzaW6dlGtbhooeH3AXH4vANP_TuWGhWjtbNJ7SRp8",
+      "hybridSignature": {
+        "ed25519": {
+          "keyId": "ed25519-prekey-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "14", "length": 32 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "24", "length": 64 }
+        },
+        "mldsa": {
+          "algorithm": "ML-DSA-65",
+          "keyId": "mldsa-prekey-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "34", "length": 1952 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "44", "length": 3309 },
+          "context": "cHFhdXRoLWtpdC1yYXRjaGV0LXByZWtleS1idW5kbGUtaHlicmlkLWF1dGgtdjE"
+        }
+      }
+    },
+    {
+      "id": "safety_number",
+      "trustStateObject": "safety_number",
+      "signedBytesDomain": "pqauth-kit-safety-number-hybrid-auth-v1",
+      "canonicalBytesUtf8": "{\"accountId\":\"acct-fixture-001\",\"peerAccountId\":\"acct-fixture-002\",\"safetyNumberVersion\":1}",
+      "signedBytesHash": "wvltcBNrmLwiRFK0n9WKC69futL35dllmXyvqf7mXlY",
+      "hybridSignature": {
+        "ed25519": {
+          "keyId": "ed25519-safety-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "15", "length": 32 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "25", "length": 64 }
+        },
+        "mldsa": {
+          "algorithm": "ML-DSA-65",
+          "keyId": "mldsa-safety-fixture",
+          "publicKeyFixture": { "encoding": "repeat-byte-v1", "byte": "35", "length": 1952 },
+          "signatureFixture": { "encoding": "repeat-byte-v1", "byte": "45", "length": 3309 },
+          "context": "cHFhdXRoLWtpdC1zYWZldHktbnVtYmVyLWh5YnJpZC1hdXRoLXYx"
+        }
+      }
+    }
+  ],
+  "negativeCases": [
+    { "id": "mldsa_missing", "basePositiveCase": "account_identity", "mutation": "remove_mldsa_signature", "expectedError": "mldsa_signature_required" },
+    { "id": "ed25519_missing", "basePositiveCase": "device_identity", "mutation": "remove_ed25519_signature", "expectedError": "ed25519_signature_required" },
+    { "id": "signed_bytes_mismatch", "basePositiveCase": "roster_publish", "mutation": "mldsa_signs_different_canonical_bytes", "expectedError": "signed_bytes_mismatch" },
+    { "id": "wrong_mldsa_context", "basePositiveCase": "prekey_bundle", "mutation": "replace_mldsa_context", "expectedError": "mldsa_context_mismatch" },
+    { "id": "wrong_domain_separator", "basePositiveCase": "safety_number", "mutation": "replace_signed_bytes_domain", "expectedError": "domain_separator_mismatch" },
+    { "id": "wrong_public_key_length", "basePositiveCase": "account_identity", "mutation": "truncate_mldsa_public_key", "expectedError": "mldsa_public_key_length_invalid" },
+    { "id": "wrong_signature_length", "basePositiveCase": "device_identity", "mutation": "truncate_mldsa_signature", "expectedError": "mldsa_signature_length_invalid" },
+    { "id": "unsupported_parameter_set", "basePositiveCase": "roster_publish", "mutation": "replace_parameter_set_with_ml_dsa_44", "expectedError": "mldsa_parameter_set_unsupported" },
+    { "id": "ed25519_only_outside_migration", "basePositiveCase": "prekey_bundle", "mutation": "remove_mldsa_signature_without_migration_mode", "expectedError": "hybrid_auth_required" }
+  ],
+  "defaultMessageHotPath": {
+    "perMessagePQSignaturesEnabled": false,
+    "experimentalCapability": "per_message_pq_signature_v1_experimental"
+  }
+}

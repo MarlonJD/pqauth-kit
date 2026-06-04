@@ -1,0 +1,27 @@
+# PQAuthKit Vectors
+
+The `hybrid-trust-state-v1.json` fixture is shared by Swift, Kotlin, .NET, and
+backend tests. It covers account identity, device identity, roster publish,
+prekey bundle, and safety-number hybrid signatures.
+
+The current vectors are structural, not cryptographic conformance vectors. They
+include canonical bytes, SHA-256 hashes, package domain separators, algorithm
+metadata, FIPS 204 lengths, and deterministic repeat-byte fixture descriptors.
+They deliberately do not claim that the ML-DSA signatures are valid. Real
+provider vectors must replace or supplement these once an audited ML-DSA provider
+is approved.
+
+Negative cases cover:
+
+- ML-DSA missing.
+- Ed25519 missing.
+- Ed25519 and ML-DSA signing different bytes.
+- Wrong ML-DSA context.
+- Wrong domain separator.
+- Wrong public key length.
+- Wrong signature length.
+- Unsupported ML-DSA parameter set.
+- Ed25519-only record outside migration mode.
+
+Per-message PQ signatures are represented only as an experimental disabled
+domain. They are not part of the default message hot path.
