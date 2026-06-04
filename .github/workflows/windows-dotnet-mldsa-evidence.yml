@@ -41,10 +41,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"
 
@@ -103,7 +103,7 @@ jobs:
           $summary | ConvertTo-Json -Depth 20 | Out-File -FilePath evidence/dotnet-mldsa-evidence-summary.json -Encoding utf8
 
       - name: Upload Windows ML-DSA evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-dotnet-mldsa-evidence
           path: platforms/dotnet/evidence/
