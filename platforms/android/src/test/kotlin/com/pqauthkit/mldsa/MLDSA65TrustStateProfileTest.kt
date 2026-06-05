@@ -44,15 +44,19 @@ class MLDSA65TrustStateProfileTest {
     }
 
     @Test
-    fun `production readiness manifest is scoped and does not approve unsupported platforms`() {
+    fun `production readiness manifest separates package readiness from consumer rollout`() {
         val manifest = File("../../docs/evidence/production-readiness-v1.json").canonicalFile.readText()
         assertTrue(manifest.contains("\"schema\": \"pqauth-kit-production-readiness-v1\""))
-        assertTrue(manifest.contains("\"overallPackageStatus\": \"scoped_production_ready\""))
+        assertTrue(manifest.contains("\"overallPackageStatus\": \"all_supported_platforms_production_ready\""))
         assertTrue(manifest.contains("\"id\": \"android-bouncycastle-jvm-mldsa65-trust-state-v1\""))
         assertTrue(manifest.contains("\"providerId\": \"android.bouncycastle-jvm.mldsa65\""))
-        assertTrue(manifest.contains("\"id\": \"all-supported-platforms-trust-state-v1\""))
+        assertTrue(manifest.contains("\"id\": \"apple-cryptokit-mldsa65-macos-trust-state-v1\""))
+        assertTrue(manifest.contains("\"id\": \"apple-cryptokit-mldsa65-ios-trust-state-v1\""))
+        assertTrue(manifest.contains("\"id\": \"windows-dotnet-mldsa65-trust-state-v1\""))
+        assertTrue(manifest.contains("\"id\": \"swift-and-csharp-fallback-production-v1\""))
         assertTrue(manifest.contains("\"status\": \"blocked\""))
         assertTrue(manifest.contains("\"per-message ML-DSA signatures in the default message hot path\""))
+        assertTrue(manifest.contains("\"consumer storage, migration, rollout, telemetry, or release approval\""))
     }
 
     private fun loadPositiveCases(): Map<String, TrustStateCase> {
