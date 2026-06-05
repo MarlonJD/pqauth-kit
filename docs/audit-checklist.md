@@ -44,7 +44,8 @@ export, malformed public key rejection, and malformed signature rejection for:
 - At least one supported iPhone.
 - Apple Silicon macOS release hardware.
 - Low, mid, and high Android devices.
-- Windows x64 and ARM64 where hardware is available.
+- Windows GitHub Actions `windows-latest` for the .NET ML-DSA provider gate
+  when the readiness manifest records hosted-runner evidence as accepted.
 
 Benchmark evidence must include p50, p95, allocation or memory notes, payload
 size impact, device model, OS/runtime version, provider id, and package commit.
@@ -52,8 +53,10 @@ The report id must appear in `docs/evidence/readiness-gates-v1.json` before a
 provider can be marked production-ready.
 
 Checkpoint exceptions may use emulator or hosted-runner timing evidence when
-the readiness manifest records the accepted residual risk and release-device
-follow-up.
+the readiness manifest records the accepted residual risk. For the Windows
+.NET ML-DSA provider gate, GitHub Actions `windows-latest` evidence is accepted
+for this checkpoint when the uploaded artifact records runtime support and all
+required provider-backed trust-state cases.
 
 ## Production Fallback Rules
 

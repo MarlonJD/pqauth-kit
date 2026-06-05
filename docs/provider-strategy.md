@@ -74,6 +74,11 @@ Policy:
 
 - Prefer CryptoKit ML-DSA on OS 26+ when the SDK and runtime expose the chosen
   parameter set and the provider stays stable for the operation.
+- macOS CryptoKit ML-DSA-65 is approved for package-level trust-state use after
+  release-hardware SwiftPM evidence over all five trust-state objects.
+- iOS Simulator Swift package coverage exists, but iOS production readiness
+  remains blocked until a package-neutral host app or equivalent
+  release-device harness runs the provider-backed tests on physical hardware.
 - Select Secure Enclave ML-DSA only when non-exportable key lifecycle is
   compatible with account recovery, migration, and multi-device E2EE.
 - Below OS 26, use only an audited Swift fallback when explicitly enabled by
@@ -135,6 +140,9 @@ Policy:
 
 - Prefer `System.Security.Cryptography.MLDsa` when the shipping runtime supports
   it and `MLDsa.IsSupported` is true.
+- For the package-level Windows gate, GitHub Actions `windows-latest` evidence
+  is accepted when the uploaded artifact records `mldsaIsSupported=true` and a
+  provider-backed conformance vector over all five trust-state objects.
 - Use CNG or OpenSSL only through official .NET provider classes.
 - Use only an audited managed C# fallback after FIPS 204 code map, vector
   parity, audit, side-channel review, and benchmark gates are approved.

@@ -79,12 +79,15 @@ public struct PQAuthProviderCatalog: Sendable {
 
     public static func apple(platform: PQAuthPlatform) -> Self {
         let osName = platform.rawValue
+        let macOSMLDSA65Approved = platform == .macOS
         let cryptoKitMLDSA65Evidence = PQAuthEvidenceReferences.appleCryptoKitDocs(
             providerVersion: "\(osName) 26.0 SDK documentation",
-            conformanceVectorId: platform == .macOS ? "apple-cryptokit-mldsa65-device-identity-2026-06-04" : nil,
+            conformanceVectorId: platform == .macOS ? "apple-cryptokit-mldsa65-macos-trust-state-profile-2026-06-05" : nil,
             benchmarkReportId: platform == .macOS ? "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04" : nil,
             sideChannelReviewId: platform == .macOS ? "apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04" : nil,
-            remainingRisk: "Additional provider conformance, release-device benchmark, and side-channel evidence remain pending."
+            remainingRisk: platform == .macOS
+                ? "macOS package-level CryptoKit ML-DSA-65 trust-state profile approved; Secure Enclave lifecycle remains separate."
+                : "Additional provider conformance, release-device benchmark, and side-channel evidence remain pending."
         )
         let cryptoKitMLDSA87Evidence = PQAuthEvidenceReferences.appleCryptoKitDocs(
             providerVersion: "\(osName) 26.0 SDK documentation",
@@ -109,8 +112,8 @@ public struct PQAuthProviderCatalog: Sendable {
                 nativeLibraryDependency: false,
                 fallbackAllowedInProduction: false,
                 auditStatus: .approved,
-                benchmarkStatus: .pending,
-                sideChannelReviewStatus: .pending,
+                benchmarkStatus: macOSMLDSA65Approved ? .approved : .pending,
+                sideChannelReviewStatus: macOSMLDSA65Approved ? .approved : .pending,
                 evidence: cryptoKitMLDSA65Evidence
             ),
             PQAuthProviderMetadata(

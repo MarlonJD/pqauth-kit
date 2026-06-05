@@ -21,6 +21,7 @@ var tests = new (string Name, Action Run)[]
     ("matches ML-DSA-65 lengths", MatchesMldsa65Lengths),
     ("blocks production deterministic entropy", BlocksProductionDeterministicEntropy),
     ("validates shared vector fixture", ValidatesSharedVectorFixture),
+    ("validates downstream server verifier contract evidence", ValidatesDownstreamServerVerifierContractEvidence),
     ("validates ML-DSA conformance vector", ValidatesMldsaConformanceVector),
     ("validates readiness evidence manifests", ValidatesReadinessEvidenceManifests),
     ("smoke-tests .NET MLDsa when runtime supports it", SmokeTestsDotNetMldsaWhenSupported)
@@ -152,6 +153,62 @@ static void ValidatesSharedVectorFixture()
     Assert.Contains($"\"signedBytesHash\": \"{hash}\"", json);
 }
 
+static void ValidatesDownstreamServerVerifierContractEvidence()
+{
+    var contract = ServerVerifierContractEvidence.Load(Path.GetFullPath("../../vectors/hybrid-trust-state-v1.json"));
+
+    Assert.Equal("pqauth-kit-hybrid-trust-state-v1", contract.Schema);
+    Assert.Equal("ed25519_and_mldsa_required", contract.Policy);
+    Assert.Equal(5, contract.PositiveCases.Count);
+    foreach (var trustStateObject in new[]
+    {
+        "account_identity",
+        "device_identity",
+        "roster_publish",
+        "prekey_bundle",
+        "safety_number"
+    })
+    {
+        Assert.Contains(trustStateObject, contract.PositiveCases.Select(testCase => testCase.TrustStateObject));
+    }
+
+    var serverPolicy = new ServerVerifierPolicy(
+        ApprovedMldsaProviderAvailable: true,
+        AllowEd25519OnlyMigrationMode: false);
+    foreach (var positiveCase in contract.PositiveCases)
+    {
+        Assert.Equal("ok", contract.VerifyTrustStateWrite(positiveCase, serverPolicy));
+        Assert.Equal("ok", contract.VerifyTrustStateRead(positiveCase, serverPolicy));
+    }
+
+    Assert.Equal(9, contract.NegativeCases.Count);
+    foreach (var negativeCase in contract.NegativeCases)
+    {
+        var mutated = contract.Mutate(negativeCase);
+        Assert.Equal(negativeCase.ExpectedError, contract.VerifyTrustStateWrite(mutated, serverPolicy));
+        Assert.Equal(negativeCase.ExpectedError, contract.VerifyTrustStateRead(mutated, serverPolicy));
+    }
+
+    var providerUnavailablePolicy = serverPolicy with { ApprovedMldsaProviderAvailable = false };
+    Assert.Equal(
+        "no_approved_mldsa_provider",
+        contract.VerifyTrustStateWrite(contract.PositiveCases[0], providerUnavailablePolicy));
+    Assert.Equal(
+        "no_approved_mldsa_provider",
+        contract.VerifyTrustStateRead(contract.PositiveCases[0], providerUnavailablePolicy));
+
+    var readiness = File.ReadAllText(Path.GetFullPath("../../docs/evidence/readiness-gates-v1.json"));
+    Assert.Contains("\"evidenceId\": \"server-verifier-trust-state-integration-2026-06-04\"", readiness);
+    Assert.Contains("\"loadsSharedContractDirectly\": true", readiness);
+    Assert.Contains("\"failClosedWithoutApprovedMldsaProvider\": true", readiness);
+    Assert.Contains("\"ed25519OnlyDowngradeRejectedOutsideMigrationMode\": true", readiness);
+
+    var evidence = File.ReadAllText(Path.GetFullPath("../../docs/evidence/server-verifier-trust-state-integration-2026-06-04.md"));
+    Assert.Contains("vectors/hybrid-trust-state-v1.json", evidence);
+    Assert.Contains("server/verifier", evidence);
+    Assert.Contains("no_approved_mldsa_provider", evidence);
+}
+
 static void ValidatesMldsaConformanceVector()
 {
     var path = Path.GetFullPath("../../vectors/mldsa-conformance-v1.json");
@@ -198,12 +255,24 @@ static void ValidatesMldsaConformanceVector()
 
 static void ValidatesReadinessEvidenceManifests()
 {
-    var readiness = File.ReadAllText(Path.GetFullPath("../../docs/evidence/readiness-gates-v1.json"));
-    Assert.Contains("\"schema\": \"pqauth-kit-readiness-gates-v1\"", readiness);
-    Assert.Contains("\"providerId\": \"apple.cryptokit.mldsa65.macos\"", readiness);
-    Assert.Contains("\"benchmarkReportId\": \"apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04\"", readiness);
-    Assert.Contains("\"sideChannelReviewId\": \"apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04\"", readiness);
-    Assert.Contains("\"productionReady\": false", readiness);
+    using var readiness = JsonDocument.Parse(File.ReadAllText(Path.GetFullPath("../../docs/evidence/readiness-gates-v1.json")));
+    var root = readiness.RootElement;
+    Assert.Equal("pqauth-kit-readiness-gates-v1", root.GetProperty("schema").GetString());
+
+    var providers = root.GetProperty("providers").EnumerateArray().ToArray();
+    var macOS = ProviderById(providers, "apple.cryptokit.mldsa65.macos");
+    Assert.Equal("apple-cryptokit-mldsa65-macos-trust-state-profile-2026-06-05", macOS.GetProperty("conformanceVectorId").GetString());
+    Assert.Equal("apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04", macOS.GetProperty("benchmarkReportId").GetString());
+    Assert.Equal("apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04", macOS.GetProperty("sideChannelReviewId").GetString());
+    Assert.True(macOS.GetProperty("productionReady").GetBoolean());
+
+    var iOS = ProviderById(providers, "apple.cryptokit.mldsa65.ios");
+    Assert.Equal(JsonValueKind.Null, iOS.GetProperty("conformanceVectorId").ValueKind);
+    Assert.False(iOS.GetProperty("productionReady").GetBoolean());
+
+    var windows = ProviderById(providers, "dotnet.system-security-cryptography.mldsa65");
+    Assert.Equal(JsonValueKind.Null, windows.GetProperty("conformanceVectorId").ValueKind);
+    Assert.False(windows.GetProperty("productionReady").GetBoolean());
 
     var benchmark = File.ReadAllText(Path.GetFullPath("../../docs/evidence/apple-cryptokit-mldsa65-macos-benchmark-2026-06-04.json"));
     Assert.Contains("\"schema\" : \"pqauth-kit-benchmark-evidence-v1\"", benchmark);
@@ -212,6 +281,19 @@ static void ValidatesReadinessEvidenceManifests()
     Assert.Contains("\"verify\"", benchmark);
     Assert.Contains("\"malformedPublicKeyRejection\"", benchmark);
     Assert.Contains("\"malformedSignatureRejection\"", benchmark);
+}
+
+static JsonElement ProviderById(IEnumerable<JsonElement> providers, string providerId)
+{
+    foreach (var provider in providers)
+    {
+        if (provider.GetProperty("providerId").GetString() == providerId)
+        {
+            return provider;
+        }
+    }
+
+    throw new InvalidOperationException($"Missing provider {providerId}");
 }
 
 static void SmokeTestsDotNetMldsaWhenSupported()
@@ -239,20 +321,14 @@ static string GenerateMldsaConformanceVector()
         throw new PlatformNotSupportedException("ML-DSA is not supported by this .NET runtime");
     }
 
-    using var key = MLDsa.GenerateKey(MLDsaAlgorithm.MLDsa65);
-    var canonicalBytes = "{\"subject\":\"pqauth-kit-conformance\",\"trustStateObject\":\"device_identity\",\"version\":1}";
-    var context = Encoding.UTF8.GetBytes(PQAuthTrustStateObject.DeviceIdentity.DomainSeparator());
-    var signedBytes = Encoding.UTF8.GetBytes(canonicalBytes);
-    var signature = key.SignData(signedBytes, context);
-    var publicKey = key.ExportMLDsaPublicKey();
-    var privateKey = key.ExportMLDsaPrivateKey();
+    var contract = ServerVerifierContractEvidence.Load(Path.GetFullPath("../../vectors/hybrid-trust-state-v1.json"));
 
     var vector = new
     {
         schema = "pqauth-kit-mldsa-conformance-v1",
         version = 1,
         fixtureKind = "cryptographic-provider-conformance",
-        generatedAt = "2026-06-04",
+        generatedAt = DateTimeOffset.UtcNow.ToString("o"),
         generatedBy = new
         {
             providerId = "dotnet.system-security-cryptography.mldsa65",
@@ -263,6 +339,9 @@ static string GenerateMldsaConformanceVector()
             providerCommit = "94ea82652c",
             packageCommitAtGeneration = "bdccefb89a2c933513c99f658cd2070d8740236c"
         },
+        providerBackedTrustStateObjects = contract.PositiveCases
+            .Select(testCase => testCase.TrustStateObject)
+            .ToArray(),
         algorithm = new
         {
             name = "ML-DSA",
@@ -285,39 +364,47 @@ static string GenerateMldsaConformanceVector()
             "malformed-public-key-rejection",
             "malformed-signature-rejection"
         },
-        cases = new[]
-        {
-            new
+        cases = contract.PositiveCases.Select(testCase =>
             {
-                id = "dotnet_mldsa65_device_identity_2026_06_04",
-                providerId = "dotnet.system-security-cryptography.mldsa65",
-                trustStateObject = "device_identity",
-                signedBytesDomain = PQAuthTrustStateObject.DeviceIdentity.DomainSeparator(),
-                canonicalBytesUtf8 = canonicalBytes,
-                signedBytesHash = Base64Url(SHA256.HashData(signedBytes)),
-                context = Base64Url(context),
-                publicKey = new
+                using var key = MLDsa.GenerateKey(MLDsaAlgorithm.MLDsa65);
+                var signedBytes = Encoding.UTF8.GetBytes(testCase.CanonicalBytesUtf8);
+                var context = Encoding.UTF8.GetBytes(testCase.SignedBytesDomain);
+                var signature = key.SignData(signedBytes, context);
+                var publicKey = key.ExportMLDsaPublicKey();
+                var privateKey = key.ExportMLDsaPrivateKey();
+
+                return new
                 {
-                    encoding = "base64url-raw-fips204-public-key",
-                    value = Base64Url(publicKey),
-                    length = publicKey.Length
-                },
-                privateKey = new
-                {
-                    encoding = "base64url-raw-fips204-private-key-test-fixture",
-                    value = Base64Url(privateKey),
-                    length = privateKey.Length,
-                    secret = false
-                },
-                signature = new
-                {
-                    encoding = "base64url-raw-fips204-signature",
-                    value = Base64Url(signature),
-                    length = signature.Length
-                },
-                expected = "verify_true"
-            }
-        },
+                    id = $"dotnet_mldsa65_{testCase.TrustStateObject}_{DateTimeOffset.UtcNow:yyyy_MM_dd}",
+                    providerId = "dotnet.system-security-cryptography.mldsa65",
+                    trustStateObject = testCase.TrustStateObject,
+                    signedBytesDomain = testCase.SignedBytesDomain,
+                    canonicalBytesUtf8 = testCase.CanonicalBytesUtf8,
+                    signedBytesHash = Base64Url(SHA256.HashData(signedBytes)),
+                    context = Base64Url(context),
+                    publicKey = new
+                    {
+                        encoding = "base64url-raw-fips204-public-key",
+                        value = Base64Url(publicKey),
+                        length = publicKey.Length
+                    },
+                    privateKey = new
+                    {
+                        encoding = "base64url-raw-fips204-private-key-test-fixture",
+                        value = Base64Url(privateKey),
+                        length = privateKey.Length,
+                        secret = false
+                    },
+                    signature = new
+                    {
+                        encoding = "base64url-raw-fips204-signature",
+                        value = Base64Url(signature),
+                        length = signature.Length
+                    },
+                    expected = "verify_true"
+                };
+            })
+            .ToArray(),
         negativeCases = new[]
         {
             new { id = "signed_bytes_mismatch", mutation = "replace_canonical_bytes", expected = "verify_false" },
@@ -357,6 +444,240 @@ static byte[] Base64UrlDecode(string value)
     padded = padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
     return Convert.FromBase64String(padded);
 }
+
+internal sealed record ServerVerifierPolicy(
+    bool ApprovedMldsaProviderAvailable,
+    bool AllowEd25519OnlyMigrationMode);
+
+internal sealed class ServerVerifierContractEvidence
+{
+    private readonly IReadOnlyDictionary<string, TrustStateCase> positiveCasesById;
+    private readonly IReadOnlyDictionary<string, string> domainByTrustStateObject;
+
+    private ServerVerifierContractEvidence(
+        string schema,
+        string policy,
+        MldsaLengths mldsaLengths,
+        IReadOnlyList<TrustStateCase> positiveCases,
+        IReadOnlyList<NegativeTrustStateCase> negativeCases)
+    {
+        Schema = schema;
+        Policy = policy;
+        MldsaLengths = mldsaLengths;
+        PositiveCases = positiveCases;
+        NegativeCases = negativeCases;
+        positiveCasesById = positiveCases.ToDictionary(testCase => testCase.Id);
+        domainByTrustStateObject = positiveCases.ToDictionary(
+            testCase => testCase.TrustStateObject,
+            testCase => testCase.SignedBytesDomain);
+    }
+
+    public string Schema { get; }
+    public string Policy { get; }
+    public MldsaLengths MldsaLengths { get; }
+    public IReadOnlyList<TrustStateCase> PositiveCases { get; }
+    public IReadOnlyList<NegativeTrustStateCase> NegativeCases { get; }
+
+    public static ServerVerifierContractEvidence Load(string path)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        var root = document.RootElement;
+        var algorithms = root.GetProperty("algorithms").GetProperty("mldsa");
+        var positiveCases = root.GetProperty("positiveCases")
+            .EnumerateArray()
+            .Select(ParseTrustStateCase)
+            .ToList();
+        var negativeCases = root.GetProperty("negativeCases")
+            .EnumerateArray()
+            .Select(ParseNegativeCase)
+            .ToList();
+
+        return new ServerVerifierContractEvidence(
+            root.GetProperty("schema").GetString()!,
+            root.GetProperty("policy").GetString()!,
+            new MldsaLengths(
+                algorithms.GetProperty("publicKeyLength").GetInt32(),
+                algorithms.GetProperty("signatureLength").GetInt32()),
+            positiveCases,
+            negativeCases);
+    }
+
+    public TrustStateCase Mutate(NegativeTrustStateCase negativeCase)
+    {
+        var positiveCase = positiveCasesById[negativeCase.BasePositiveCase];
+        return negativeCase.Mutation switch
+        {
+            "remove_mldsa_signature" => positiveCase with { Mldsa = null },
+            "remove_ed25519_signature" => positiveCase with { Ed25519 = null },
+            "mldsa_signs_different_canonical_bytes" => positiveCase with
+            {
+                MldsaSignedBytesHash = "server-verifier-negative-different-signed-bytes"
+            },
+            "replace_mldsa_context" => positiveCase with
+            {
+                Mldsa = positiveCase.Mldsa! with
+                {
+                    Context = Base64UrlEncode(Encoding.UTF8.GetBytes("wrong-mldsa-context"))
+                }
+            },
+            "replace_signed_bytes_domain" => positiveCase with
+            {
+                SignedBytesDomain = "pqauth-kit-wrong-domain-v1"
+            },
+            "truncate_mldsa_public_key" => positiveCase with
+            {
+                Mldsa = positiveCase.Mldsa! with
+                {
+                    PublicKeyLength = positiveCase.Mldsa.PublicKeyLength - 1
+                }
+            },
+            "truncate_mldsa_signature" => positiveCase with
+            {
+                Mldsa = positiveCase.Mldsa! with
+                {
+                    SignatureLength = positiveCase.Mldsa.SignatureLength - 1
+                }
+            },
+            "replace_parameter_set_with_ml_dsa_44" => positiveCase with
+            {
+                Mldsa = positiveCase.Mldsa! with { Algorithm = "ML-DSA-44" }
+            },
+            "remove_mldsa_signature_without_migration_mode" => positiveCase with
+            {
+                Mldsa = null,
+                Ed25519OnlyDowngrade = true
+            },
+            _ => throw new InvalidOperationException($"Unsupported mutation {negativeCase.Mutation}")
+        };
+    }
+
+    public string VerifyTrustStateWrite(TrustStateCase testCase, ServerVerifierPolicy policy) =>
+        Verify(testCase, policy);
+
+    public string VerifyTrustStateRead(TrustStateCase testCase, ServerVerifierPolicy policy) =>
+        Verify(testCase, policy);
+
+    private string Verify(TrustStateCase testCase, ServerVerifierPolicy policy)
+    {
+        if (!domainByTrustStateObject.TryGetValue(testCase.TrustStateObject, out var expectedDomain) ||
+            testCase.SignedBytesDomain != expectedDomain)
+        {
+            return "domain_separator_mismatch";
+        }
+
+        if (testCase.Ed25519 is null)
+        {
+            return "ed25519_signature_required";
+        }
+
+        if (testCase.Mldsa is null)
+        {
+            return testCase.Ed25519OnlyDowngrade && !policy.AllowEd25519OnlyMigrationMode
+                ? "hybrid_auth_profile_required"
+                : "mldsa_signature_required";
+        }
+
+        if (!policy.ApprovedMldsaProviderAvailable)
+        {
+            return "no_approved_mldsa_provider";
+        }
+
+        if (testCase.Mldsa.Algorithm != "ML-DSA-65")
+        {
+            return "mldsa_parameter_set_unsupported";
+        }
+
+        if (testCase.Mldsa.PublicKeyLength != MldsaLengths.PublicKeyLength)
+        {
+            return "mldsa_public_key_length_invalid";
+        }
+
+        if (testCase.Mldsa.SignatureLength != MldsaLengths.SignatureLength)
+        {
+            return "mldsa_signature_length_invalid";
+        }
+
+        if (testCase.MldsaSignedBytesHash != testCase.SignedBytesHash ||
+            SignedBytesHash(testCase.CanonicalBytesUtf8) != testCase.SignedBytesHash)
+        {
+            return "signed_bytes_mismatch";
+        }
+
+        if (testCase.Mldsa.Context != Base64UrlEncode(Encoding.UTF8.GetBytes(testCase.SignedBytesDomain)))
+        {
+            return "mldsa_context_mismatch";
+        }
+
+        return "ok";
+    }
+
+    private static TrustStateCase ParseTrustStateCase(JsonElement entry)
+    {
+        var signature = entry.GetProperty("hybridSignature");
+        return new TrustStateCase(
+            entry.GetProperty("id").GetString()!,
+            entry.GetProperty("trustStateObject").GetString()!,
+            entry.GetProperty("signedBytesDomain").GetString()!,
+            entry.GetProperty("canonicalBytesUtf8").GetString()!,
+            entry.GetProperty("signedBytesHash").GetString()!,
+            ParseEd25519Signature(signature.GetProperty("ed25519")),
+            ParseMldsaSignature(signature.GetProperty("mldsa")),
+            entry.GetProperty("signedBytesHash").GetString()!,
+            Ed25519OnlyDowngrade: false);
+    }
+
+    private static Ed25519Signature ParseEd25519Signature(JsonElement entry) => new(
+        entry.GetProperty("publicKeyFixture").GetProperty("length").GetInt32(),
+        entry.GetProperty("signatureFixture").GetProperty("length").GetInt32());
+
+    private static MldsaSignature ParseMldsaSignature(JsonElement entry) => new(
+        entry.GetProperty("algorithm").GetString()!,
+        entry.GetProperty("publicKeyFixture").GetProperty("length").GetInt32(),
+        entry.GetProperty("signatureFixture").GetProperty("length").GetInt32(),
+        entry.GetProperty("context").GetString()!);
+
+    private static NegativeTrustStateCase ParseNegativeCase(JsonElement entry) => new(
+        entry.GetProperty("id").GetString()!,
+        entry.GetProperty("basePositiveCase").GetString()!,
+        entry.GetProperty("mutation").GetString()!,
+        entry.GetProperty("expectedError").GetString()!);
+
+    private static string SignedBytesHash(string canonicalBytesUtf8) =>
+        Base64UrlEncode(SHA256.HashData(Encoding.UTF8.GetBytes(canonicalBytesUtf8)));
+
+    private static string Base64UrlEncode(byte[] value) =>
+        Convert.ToBase64String(value)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+}
+
+internal sealed record MldsaLengths(int PublicKeyLength, int SignatureLength);
+
+internal sealed record TrustStateCase(
+    string Id,
+    string TrustStateObject,
+    string SignedBytesDomain,
+    string CanonicalBytesUtf8,
+    string SignedBytesHash,
+    Ed25519Signature? Ed25519,
+    MldsaSignature? Mldsa,
+    string MldsaSignedBytesHash,
+    bool Ed25519OnlyDowngrade);
+
+internal sealed record Ed25519Signature(int PublicKeyLength, int SignatureLength);
+
+internal sealed record MldsaSignature(
+    string Algorithm,
+    int PublicKeyLength,
+    int SignatureLength,
+    string Context);
+
+internal sealed record NegativeTrustStateCase(
+    string Id,
+    string BasePositiveCase,
+    string Mutation,
+    string ExpectedError);
 
 internal static class Assert
 {

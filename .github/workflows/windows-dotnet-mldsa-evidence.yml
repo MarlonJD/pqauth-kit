@@ -9,12 +9,14 @@ on:
       - ".github/workflows/windows-dotnet-mldsa-evidence.yml"
       - "platforms/dotnet/**"
       - "docs/evidence/**"
+      - "tools/**"
       - "vectors/**"
   pull_request:
     paths:
       - ".github/workflows/windows-dotnet-mldsa-evidence.yml"
       - "platforms/dotnet/**"
       - "docs/evidence/**"
+      - "tools/**"
       - "vectors/**"
 
 permissions:
@@ -75,6 +77,7 @@ jobs:
             mldsaIsSupported = $false
             conformanceVectorGenerated = $false
             conformanceVectorArtifact = $null
+            providerBackedTrustStateObjects = @()
             unsupportedReason = $null
           }
 
@@ -84,9 +87,30 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             $commandOutput | Out-File -FilePath $vectorPath -Encoding utf8
             $vector = Get-Content -Raw -Path $vectorPath | ConvertFrom-Json
+            $expectedObjects = @(
+              "account_identity",
+              "device_identity",
+              "roster_publish",
+              "prekey_bundle",
+              "safety_number"
+            )
+            $objects = @($vector.providerBackedTrustStateObjects)
+            $cases = @($vector.cases)
+
+            if ($cases.Count -ne $expectedObjects.Count) {
+              throw "Expected $($expectedObjects.Count) provider-backed trust-state cases, got $($cases.Count)"
+            }
+
+            foreach ($expectedObject in $expectedObjects) {
+              if ($objects -notcontains $expectedObject) {
+                throw "Missing provider-backed trust-state object: $expectedObject"
+              }
+            }
+
             $summary["mldsaIsSupported"] = $true
             $summary["conformanceVectorGenerated"] = $true
             $summary["conformanceVectorArtifact"] = "dotnet-mldsa-conformance-vector.json"
+            $summary["providerBackedTrustStateObjects"] = $objects
             $summary["algorithm"] = $vector.algorithm
             $summary["operations"] = $vector.operations
           } else {

@@ -94,6 +94,46 @@ final class PQAuthVectorFixtureTests: XCTestCase {
         }
     }
 
+    func testCryptoKitMLDSA65ProviderSignsAndVerifiesEveryTrustStateObject() throws {
+        guard #available(iOS 26.0, macOS 26.0, *) else {
+            throw XCTSkip("CryptoKit MLDSA65 provider-backed evidence requires OS 26.0 or newer.")
+        }
+
+        let fixture = try loadFixture()
+        let positiveCases = try XCTUnwrap(fixture["positiveCases"] as? [[String: Any]])
+        let provider = CryptoKitMLDSA65Provider(platform: .macOS)
+        let requiredTrustStateObjects: Set<String> = [
+            "account_identity",
+            "device_identity",
+            "roster_publish",
+            "prekey_bundle",
+            "safety_number",
+        ]
+        var signedObjects = Set<String>()
+
+        XCTAssertEqual(requiredTrustStateObjects, Set(PQAuthTrustStateObject.allCases.map(\.rawValue)))
+
+        for entry in positiveCases {
+            let trustStateObject = try XCTUnwrap(entry["trustStateObject"] as? String)
+            let canonicalBytes = Data(try XCTUnwrap(entry["canonicalBytesUtf8"] as? String).utf8)
+            let context = Data(try XCTUnwrap(entry["signedBytesDomain"] as? String).utf8)
+            let keyPair = try provider.generateKeyPair()
+            let privateKey = try XCTUnwrap(keyPair.privateKey)
+            let signature = try provider.sign(canonicalBytes, context: context, privateKey: privateKey)
+
+            XCTAssertEqual(keyPair.publicKey.count, PQAuthParameterSet.mldsa65.publicKeyLength)
+            XCTAssertFalse(privateKey.isEmpty)
+            XCTAssertEqual(signature.count, PQAuthParameterSet.mldsa65.signatureLength)
+            XCTAssertTrue(try provider.verify(signature: signature, signedBytes: canonicalBytes, context: context, publicKey: keyPair.publicKey))
+            XCTAssertFalse(try provider.verify(signature: signature, signedBytes: Data("wrong canonical bytes".utf8), context: context, publicKey: keyPair.publicKey))
+            XCTAssertFalse(try provider.verify(signature: signature, signedBytes: canonicalBytes, context: Data("wrong context".utf8), publicKey: keyPair.publicKey))
+
+            signedObjects.insert(trustStateObject)
+        }
+
+        XCTAssertEqual(signedObjects, requiredTrustStateObjects)
+    }
+
     func testReadinessEvidenceManifestLinksBenchmarkAndSideChannelEvidence() throws {
         let readiness = try loadEvidenceFixture("readiness-gates-v1.json")
         XCTAssertEqual(readiness["schema"] as? String, "pqauth-kit-readiness-gates-v1")
@@ -103,6 +143,10 @@ final class PQAuthVectorFixtureTests: XCTestCase {
             provider["providerId"] as? String == "apple.cryptokit.mldsa65.macos"
         })
         XCTAssertEqual(
+            cryptoKit["conformanceVectorId"] as? String,
+            "apple-cryptokit-mldsa65-macos-trust-state-profile-2026-06-05"
+        )
+        XCTAssertEqual(
             cryptoKit["benchmarkReportId"] as? String,
             "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04"
         )
@@ -110,7 +154,7 @@ final class PQAuthVectorFixtureTests: XCTestCase {
             cryptoKit["sideChannelReviewId"] as? String,
             "apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04"
         )
-        XCTAssertEqual(cryptoKit["productionReady"] as? Bool, false)
+        XCTAssertEqual(cryptoKit["productionReady"] as? Bool, true)
 
         let benchmark = try loadEvidenceFixture("apple-cryptokit-mldsa65-macos-benchmark-2026-06-04.json")
         XCTAssertEqual(benchmark["schema"] as? String, "pqauth-kit-benchmark-evidence-v1")
@@ -123,28 +167,35 @@ final class PQAuthVectorFixtureTests: XCTestCase {
     }
 
     private func loadFixture() throws -> [String: Any] {
-        let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            .appendingPathComponent("../../vectors/hybrid-trust-state-v1.json")
-            .standardizedFileURL
+        let url = packageRootURL()
+            .appendingPathComponent("vectors/hybrid-trust-state-v1.json")
         let data = try Data(contentsOf: url)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 
     private func loadConformanceFixture() throws -> [String: Any] {
-        let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            .appendingPathComponent("../../vectors/mldsa-conformance-v1.json")
-            .standardizedFileURL
+        let url = packageRootURL()
+            .appendingPathComponent("vectors/mldsa-conformance-v1.json")
         let data = try Data(contentsOf: url)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 
     private func loadEvidenceFixture(_ name: String) throws -> [String: Any] {
-        let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            .appendingPathComponent("../../docs/evidence")
+        let url = packageRootURL()
+            .appendingPathComponent("docs/evidence")
             .appendingPathComponent(name)
-            .standardizedFileURL
         let data = try Data(contentsOf: url)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    }
+
+    private func packageRootURL() -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .standardizedFileURL
     }
 }
 

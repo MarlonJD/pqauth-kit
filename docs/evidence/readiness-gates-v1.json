@@ -2,6 +2,7 @@
   "schema": "pqauth-kit-readiness-gates-v1",
   "version": 1,
   "generatedAt": "2026-06-04",
+  "productionReadinessManifest": "docs/evidence/production-readiness-v1.json",
   "requiredProductionEvidence": [
     "providerSourceId",
     "providerVersion",
@@ -68,20 +69,199 @@
         "logging-boundary-review",
         "reviewer"
       ]
+    },
+    {
+      "id": "integration_readiness",
+      "requiredStatus": "approved",
+      "requiredEvidence": [
+        "shared-hybrid-trust-state-vector",
+        "account-identity-positive-case",
+        "device-identity-positive-case",
+        "roster-publish-positive-case",
+        "prekey-bundle-positive-case",
+        "safety-number-positive-case",
+        "missing-mldsa-rejection",
+        "missing-ed25519-rejection",
+        "signed-bytes-mismatch-rejection",
+        "wrong-context-rejection",
+        "wrong-domain-separator-rejection",
+        "malformed-key-rejection",
+        "malformed-signature-rejection",
+        "unsupported-parameter-set-rejection",
+        "ed25519-only-downgrade-rejection",
+        "provider-selection-fail-closed",
+        "server-verifier-direct-vector-load",
+        "server-verifier-write-path-enforcement",
+        "server-verifier-read-path-enforcement"
+      ]
     }
   ],
+  "integrationEvidence": {
+    "evidenceId": "trust-state-integration-readiness-2026-06-04",
+    "status": "approved",
+    "evidenceDocument": "docs/evidence/trust-state-integration-readiness-2026-06-04.md",
+    "sharedContract": "vectors/hybrid-trust-state-v1.json",
+    "contractSchema": "pqauth-kit-hybrid-trust-state-v1",
+    "policy": "ed25519_and_mldsa_required",
+    "positiveTrustStateObjects": [
+      "account_identity",
+      "device_identity",
+      "roster_publish",
+      "prekey_bundle",
+      "safety_number"
+    ],
+    "negativeCases": [
+      {
+        "id": "mldsa_missing",
+        "expectedError": "mldsa_signature_required"
+      },
+      {
+        "id": "ed25519_missing",
+        "expectedError": "ed25519_signature_required"
+      },
+      {
+        "id": "signed_bytes_mismatch",
+        "expectedError": "signed_bytes_mismatch"
+      },
+      {
+        "id": "wrong_mldsa_context",
+        "expectedError": "mldsa_context_mismatch"
+      },
+      {
+        "id": "wrong_domain_separator",
+        "expectedError": "domain_separator_mismatch"
+      },
+      {
+        "id": "wrong_public_key_length",
+        "expectedError": "mldsa_public_key_length_invalid"
+      },
+      {
+        "id": "wrong_signature_length",
+        "expectedError": "mldsa_signature_length_invalid"
+      },
+      {
+        "id": "unsupported_parameter_set",
+        "expectedError": "mldsa_parameter_set_unsupported"
+      },
+      {
+        "id": "ed25519_only_outside_migration",
+        "expectedError": "hybrid_auth_profile_required"
+      }
+    ],
+    "ed25519OnlyDowngradeAllowed": false,
+    "documentedMigrationModeRequiredForDowngrade": true,
+    "providerSelection": {
+      "evidenceGated": true,
+      "failClosedWhenNoApprovedMldsaProvider": true,
+      "policyDocument": "docs/provider-strategy.md",
+      "swiftTests": [
+        "platforms/swift/Tests/PQAuthKitSwiftTests/PQAuthProviderSelectionTests.swift",
+        "platforms/swift/Tests/PQAuthKitSwiftTests/PQAuthMacOSPolicyTests.swift"
+      ],
+      "androidTests": [
+        "platforms/android/src/test/kotlin/com/pqauthkit/AndroidProviderCatalogTest.kt"
+      ],
+      "dotnetTests": [
+        "platforms/dotnet/tests/PQAuthKit.Tests/Program.cs"
+      ]
+    },
+    "serverVerifierIntegrationEvidence": {
+      "evidenceId": "server-verifier-trust-state-integration-2026-06-04",
+      "status": "approved",
+      "evidenceDocument": "docs/evidence/server-verifier-trust-state-integration-2026-06-04.md",
+      "sharedContract": "vectors/hybrid-trust-state-v1.json",
+      "loadsSharedContractDirectly": true,
+      "test": "platforms/dotnet/tests/PQAuthKit.Tests/Program.cs",
+      "command": "cd platforms/dotnet && DOTNET_CLI_HOME=/private/tmp dotnet test",
+      "writePathEnforced": true,
+      "readVerificationPathEnforced": true,
+      "positiveTrustStateObjects": [
+        "account_identity",
+        "device_identity",
+        "roster_publish",
+        "prekey_bundle",
+        "safety_number"
+      ],
+      "negativeCases": [
+        {
+          "id": "mldsa_missing",
+          "expectedError": "mldsa_signature_required"
+        },
+        {
+          "id": "ed25519_missing",
+          "expectedError": "ed25519_signature_required"
+        },
+        {
+          "id": "signed_bytes_mismatch",
+          "expectedError": "signed_bytes_mismatch"
+        },
+        {
+          "id": "wrong_mldsa_context",
+          "expectedError": "mldsa_context_mismatch"
+        },
+        {
+          "id": "wrong_domain_separator",
+          "expectedError": "domain_separator_mismatch"
+        },
+        {
+          "id": "wrong_public_key_length",
+          "expectedError": "mldsa_public_key_length_invalid"
+        },
+        {
+          "id": "wrong_signature_length",
+          "expectedError": "mldsa_signature_length_invalid"
+        },
+        {
+          "id": "unsupported_parameter_set",
+          "expectedError": "mldsa_parameter_set_unsupported"
+        },
+        {
+          "id": "ed25519_only_outside_migration",
+          "expectedError": "hybrid_auth_profile_required"
+        }
+      ],
+      "ed25519OnlyDowngradeRejectedOutsideMigrationMode": true,
+      "failClosedWithoutApprovedMldsaProvider": true
+    },
+    "consumerCoverage": [
+      {
+        "surface": "swift-client",
+        "test": "platforms/swift/Tests/PQAuthKitSwiftTests/PQAuthVectorFixtureTests.swift",
+        "command": "cd platforms/swift && swift test"
+      },
+      {
+        "surface": "android-client",
+        "test": "platforms/android/src/test/kotlin/com/pqauthkit/SharedVectorFixtureTest.kt",
+        "command": "cd platforms/android && ./gradlew test"
+      },
+      {
+        "surface": "dotnet-client-verifier",
+        "test": "platforms/dotnet/tests/PQAuthKit.Tests/Program.cs",
+        "command": "cd platforms/dotnet && DOTNET_CLI_HOME=/private/tmp dotnet test"
+      },
+      {
+        "surface": "server-verifier-contract",
+        "requiredContract": "vectors/hybrid-trust-state-v1.json",
+        "evidenceDocument": "docs/evidence/server-verifier-trust-state-integration-2026-06-04.md",
+        "test": "platforms/dotnet/tests/PQAuthKit.Tests/Program.cs",
+        "command": "cd platforms/dotnet && DOTNET_CLI_HOME=/private/tmp dotnet test",
+        "loadsSharedContractDirectly": true,
+        "scope": "Server/verifier contract evidence imports the shared vector directly and proves fail-closed write and read verification paths; server storage rollout is outside the pqauth-kit package boundary."
+      }
+    ]
+  },
   "providers": [
     {
       "providerId": "apple.cryptokit.mldsa65.macos",
       "providerSourceId": "apple-cryptokit-mldsa-docs-2026-06-04",
       "providerVersion": "Apple CryptoKit MLDSA65 on macOS 26.0 SDK",
       "license": "Apple Developer Documentation",
-      "conformanceVectorId": "apple-cryptokit-mldsa65-device-identity-2026-06-04",
+      "conformanceVectorId": "apple-cryptokit-mldsa65-macos-trust-state-profile-2026-06-05",
       "auditReportId": "apple-platform-provider-doc-review-2026-06-04",
       "benchmarkReportId": "apple-cryptokit-mldsa65-macos-local-benchmark-2026-06-04",
       "sideChannelReviewId": "apple-cryptokit-mldsa65-macos-side-channel-review-2026-06-04",
-      "productionReady": false,
-      "remainingRisk": "Release-device benchmark evidence, side-channel review evidence, and broader provider conformance coverage remain pending."
+      "productionReady": true,
+      "remainingRisk": "macOS package-level CryptoKit ML-DSA-65 trust-state profile approved for exportable CryptoKit integrity-checked key lifecycle; Secure Enclave non-exportable key lifecycle and provider-internals review remain separate decisions."
     },
     {
       "providerId": "apple.cryptokit.mldsa65.ios",
@@ -93,7 +273,7 @@
       "benchmarkReportId": null,
       "sideChannelReviewId": null,
       "productionReady": false,
-      "remainingRisk": "iOS device-generated conformance, benchmark, lifecycle, and side-channel evidence remain pending."
+      "remainingRisk": "iOS Simulator package coverage exists, but release-device production evidence remains pending because tool-hosted Swift package tests cannot run directly on physical iOS devices without a package-neutral host application or equivalent harness."
     },
     {
       "providerId": "android.official-app-facing.mldsa65",
@@ -130,7 +310,7 @@
       "benchmarkReportId": null,
       "sideChannelReviewId": null,
       "productionReady": false,
-      "remainingRisk": "The local macOS .NET runtime exposes MLDsa APIs but reports IsSupported=false; runtime-supported conformance, benchmark, and side-channel evidence remain pending."
+      "remainingRisk": "The local macOS .NET runtime exposes MLDsa APIs but reports IsSupported=false. GitHub Actions windows-latest evidence is accepted for Windows runtime support and trust-state conformance once the workflow uploads an artifact with mldsaIsSupported=true and all five provider-backed trust-state cases."
     }
   ],
   "fallbackRules": [
