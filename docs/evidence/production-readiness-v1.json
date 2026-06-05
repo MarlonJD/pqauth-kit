@@ -3,7 +3,7 @@
   "version": 1,
   "generatedAt": "2026-06-05",
   "overallPackageStatus": "scoped_production_ready",
-  "statusSummary": "The explicitly approved package-level profiles are Android managed JVM Bouncy Castle ML-DSA-65 and macOS CryptoKit ML-DSA-65 trust-state use. iOS Simulator package coverage exists, but iOS production remains blocked until a package-neutral release-device host runs the provider-backed trust-state tests and records benchmark, lifecycle, and side-channel evidence. Windows .NET ML-DSA evidence may be satisfied by the GitHub Actions Windows runner artifact path, but it remains pending until a successful artifact records mldsaIsSupported=true and all five provider-backed trust-state cases. All-supported-platform production remains blocked until iOS and Windows evidence are approved.",
+  "statusSummary": "The explicitly approved package-level profiles are Android managed JVM Bouncy Castle ML-DSA-65, macOS CryptoKit ML-DSA-65, and Windows .NET ML-DSA-65 trust-state use. iOS Simulator package coverage exists, but iOS production remains blocked until a package-neutral release-device host runs the provider-backed trust-state tests and records benchmark, lifecycle, and side-channel evidence. All-supported-platform production remains blocked until iOS evidence is approved.",
   "readinessGateManifest": "docs/evidence/readiness-gates-v1.json",
   "structuralTrustStateVector": "vectors/hybrid-trust-state-v1.json",
   "requiredTrustStateObjects": [
@@ -92,12 +92,48 @@
         "iOS and Windows package-level production profiles remain separate gates."
       ],
       "approvalClaim": true
+    },
+    {
+      "id": "windows-dotnet-mldsa65-trust-state-v1",
+      "status": "approved",
+      "platform": "windows",
+      "providerId": "dotnet.system-security-cryptography.mldsa65",
+      "parameterSet": "ML-DSA-65",
+      "approvedUse": "Package-level trust-state ML-DSA-65 key generation, signing, verification, public-key import, public-key export, private-key import, and private-key export through .NET System.Security.Cryptography.MLDsa on GitHub Actions Windows runner evidence.",
+      "providerBackedTrustStateObjects": [
+        "account_identity",
+        "device_identity",
+        "roster_publish",
+        "prekey_bundle",
+        "safety_number"
+      ],
+      "evidence": {
+        "providerConformanceVector": "docs/evidence/windows-dotnet-mldsa-github-actions-evidence-2026-06-05.md",
+        "providerBackedTrustStateProfileTest": "platforms/dotnet/tests/PQAuthKit.Tests/Program.cs",
+        "providerBackedTrustStateProfileEvidence": "docs/evidence/windows-dotnet-mldsa-github-actions-evidence-2026-06-05.md",
+        "auditReport": "docs/evidence/windows-dotnet-mldsa-github-actions-evidence-2026-06-05.md",
+        "benchmarkReport": "docs/evidence/windows-dotnet-mldsa-github-actions-evidence-2026-06-05.md",
+        "sideChannelReview": "docs/evidence/windows-dotnet-mldsa65-side-channel-review-2026-06-05.md"
+      },
+      "verificationCommands": [
+        "cd platforms/dotnet && dotnet test",
+        "gh run watch 26999599786 --exit-status",
+        "gh run download 26999599786 --name windows-dotnet-mldsa-evidence --dir /private/tmp/windows-dotnet-mldsa-evidence-26999599786",
+        "python3 tools/check_production_readiness.py --manifest docs/evidence/production-readiness-v1.json"
+      ],
+      "remainingRisk": [
+        "GitHub Actions hosted-runner timing evidence is accepted for this checkpoint; pinned Windows hardware remains recommended follow-up evidence.",
+        ".NET runtime provider internals are outside this package-boundary review.",
+        "Managed C# fallback remains non-production.",
+        "iOS package-level production profile remains a separate gate."
+      ],
+      "approvalClaim": true
     }
   ],
   "ciEvidenceProfiles": [
     {
       "id": "windows-dotnet-mldsa65-github-actions-evidence",
-      "status": "pending_ci_artifact",
+      "status": "approved_artifact",
       "platform": "windows",
       "providerId": "dotnet.system-security-cryptography.mldsa65",
       "parameterSet": "ML-DSA-65",
@@ -106,10 +142,15 @@
       "artifactName": "windows-dotnet-mldsa-evidence",
       "summaryArtifact": "dotnet-mldsa-evidence-summary.json",
       "conformanceVectorArtifact": "dotnet-mldsa-conformance-vector.json",
+      "benchmarkArtifact": "dotnet-mldsa-benchmark.json",
+      "approvedRunId": "26999599786",
+      "approvedRunUrl": "https://github.com/MarlonJD/pqauth-kit/actions/runs/26999599786",
+      "approvedHeadSha": "24b700aa152ae446f9327ee3fef6a3a2df00baf6",
       "requiredSummary": {
         "schema": "pqauth-kit-windows-dotnet-mldsa-ci-evidence-v1",
         "mldsaIsSupported": true,
         "conformanceVectorGenerated": true,
+        "benchmarkGenerated": true,
         "providerBackedTrustStateObjects": [
           "account_identity",
           "device_identity",
@@ -120,8 +161,8 @@
       },
       "evidenceDocument": "docs/evidence/windows-dotnet-mldsa-github-actions-evidence-2026-06-05.md",
       "requiredForProfile": "windows-dotnet-mldsa65-trust-state-v1",
-      "ownerDecision": "Hosted GitHub Actions Windows runner evidence is accepted for Windows .NET ML-DSA runtime support and trust-state conformance for this package-level gate.",
-      "approvalClaim": false
+      "ownerDecision": "Hosted GitHub Actions Windows runner evidence is accepted for Windows .NET ML-DSA runtime support, trust-state conformance, and hosted-runner benchmark evidence for this package-level gate.",
+      "approvalClaim": true
     }
   ],
   "blockedProfiles": [
@@ -130,7 +171,6 @@
       "status": "blocked",
       "blockedOn": [
         "Apple iOS package-neutral release-device host evidence for provider-backed trust-state vectors, benchmark, lifecycle, and side-channel evidence.",
-        "Successful GitHub Actions Windows .NET ML-DSA evidence artifact with mldsaIsSupported=true and provider-backed vectors over all required trust-state objects.",
         "Any Swift or C# fallback approval would need conformance vectors, audit, benchmark, and side-channel review before production use.",
         "Consuming repositories still own deployed storage, migration, rollout, telemetry, and release approval."
       ],
@@ -146,22 +186,11 @@
         "iOS release-device benchmark, lifecycle, and side-channel evidence."
       ],
       "approvalClaim": false
-    },
-    {
-      "id": "windows-dotnet-mldsa65-trust-state-v1",
-      "status": "blocked",
-      "blockedOn": [
-        "Successful `.github/workflows/windows-dotnet-mldsa-evidence.yml` run on GitHub Actions windows-latest.",
-        "Uploaded `windows-dotnet-mldsa-evidence` artifact whose summary records `mldsaIsSupported=true`.",
-        "Uploaded provider-backed conformance vector over all five required trust-state objects."
-      ],
-      "approvalClaim": false
     }
   ],
   "doesNotApprove": [
     "all-supported-platform production readiness",
     "Apple iOS production readiness",
-    "Windows production readiness",
     "Secure Enclave ML-DSA production use",
     "Swift fallback production use",
     "C# fallback production use",

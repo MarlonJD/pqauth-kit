@@ -23,7 +23,7 @@ var tests = new (string Name, Action Run)[]
     ("fails closed when no Windows provider exists", FailsClosedWhenNoProviderExists),
     ("selects approved managed fallback only when policy allows", SelectsApprovedManagedFallback),
     ("requires explicit production readiness evidence", RequiresExplicitProductionReadinessEvidence),
-    ("keeps provider selection distinct from production readiness", KeepsProviderSelectionDistinctFromProductionReadiness),
+    ("approves .NET system provider when evidence is complete", ApprovesDotNetSystemProviderWhenEvidenceIsComplete),
     ("rejects native fallback dependencies", RejectsNativeFallbackDependencies),
     ("matches ML-DSA-65 lengths", MatchesMldsa65Lengths),
     ("blocks production deterministic entropy", BlocksProductionDeterministicEntropy),
@@ -90,16 +90,15 @@ static void RequiresExplicitProductionReadinessEvidence()
     Assert.Contains("required_evidence_missing", PQAuthReadinessGate.Blockers(provider));
 }
 
-static void KeepsProviderSelectionDistinctFromProductionReadiness()
+static void ApprovesDotNetSystemProviderWhenEvidenceIsComplete()
 {
     var provider = WindowsProviderCatalog.Default().SelectProvider(
         WindowsProviderSelectionPolicy.RequiredMldsa65(),
         new WindowsRuntimeCapabilities(DotNetMldsaIsSupported: true, ManagedFallbackAvailable: false));
 
     Assert.Equal("dotnet.system-security-cryptography.mldsa65", provider.ProviderId);
-    Assert.False(provider.IsProductionReady);
-    Assert.Contains("benchmark_status_not_approved", PQAuthReadinessGate.Blockers(provider));
-    Assert.Contains("side_channel_review_status_not_approved", PQAuthReadinessGate.Blockers(provider));
+    Assert.True(provider.HasApprovedProductionGates);
+    Assert.True(provider.IsProductionReady);
 }
 
 static void RejectsNativeFallbackDependencies()
@@ -278,8 +277,10 @@ static void ValidatesReadinessEvidenceManifests()
     Assert.False(iOS.GetProperty("productionReady").GetBoolean());
 
     var windows = ProviderById(providers, "dotnet.system-security-cryptography.mldsa65");
-    Assert.Equal(JsonValueKind.Null, windows.GetProperty("conformanceVectorId").ValueKind);
-    Assert.False(windows.GetProperty("productionReady").GetBoolean());
+    Assert.Equal("windows-dotnet-mldsa-github-actions-evidence-2026-06-05", windows.GetProperty("conformanceVectorId").GetString());
+    Assert.Equal("windows-dotnet-mldsa65-github-actions-benchmark-2026-06-05", windows.GetProperty("benchmarkReportId").GetString());
+    Assert.Equal("windows-dotnet-mldsa65-side-channel-review-2026-06-05", windows.GetProperty("sideChannelReviewId").GetString());
+    Assert.True(windows.GetProperty("productionReady").GetBoolean());
 
     var benchmark = File.ReadAllText(Path.GetFullPath("../../docs/evidence/apple-cryptokit-mldsa65-macos-benchmark-2026-06-04.json"));
     Assert.Contains("\"schema\" : \"pqauth-kit-benchmark-evidence-v1\"", benchmark);

@@ -141,8 +141,9 @@ Policy:
 - Prefer `System.Security.Cryptography.MLDsa` when the shipping runtime supports
   it and `MLDsa.IsSupported` is true.
 - For the package-level Windows gate, GitHub Actions `windows-latest` evidence
-  is accepted when the uploaded artifact records `mldsaIsSupported=true` and a
-  provider-backed conformance vector over all five trust-state objects.
+  is approved after run `26999599786` recorded `mldsaIsSupported=true`, a
+  provider-backed conformance vector over all five trust-state objects, and
+  hosted-runner benchmark evidence.
 - Use CNG or OpenSSL only through official .NET provider classes.
 - Use only an audited managed C# fallback after FIPS 204 code map, vector
   parity, audit, side-channel review, and benchmark gates are approved.

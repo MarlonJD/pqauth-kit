@@ -186,6 +186,16 @@ def validate_profile_test(profile_id: str, test_path: Path, errors: list[str]) -
             "hybrid-trust-state-v1.json",
             "PQAuthTrustStateObject.allCases",
         ]
+    elif profile_id.startswith("windows-dotnet"):
+        required_fragments = [
+            "GenerateMldsaConformanceVector",
+            "GenerateMldsaBenchmark",
+            "MLDsa.GenerateKey",
+            "SignData",
+            "VerifyData",
+            "providerBackedTrustStateObjects",
+            "hybrid-trust-state-v1.json",
+        ]
     else:
         required_fragments = [
             "MLDSA65.generateKeyPair",
@@ -209,7 +219,6 @@ def validate_blocked_profiles(manifest: dict, errors: list[str]) -> None:
     required_blocked = {
         "all-supported-platforms-trust-state-v1",
         "apple-cryptokit-mldsa65-trust-state-v1",
-        "windows-dotnet-mldsa65-trust-state-v1",
     }
     missing = required_blocked - set(blocked_by_id)
     if missing:
@@ -233,10 +242,17 @@ def validate_ci_evidence_profiles(manifest: dict, errors: list[str]) -> None:
         errors.append(f"missing CI evidence profile: {REQUIRED_WINDOWS_CI_PROFILE_ID}")
         return
 
-    if profile.get("status") != "pending_ci_artifact":
-        errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} must remain pending_ci_artifact until an artifact is linked")
-    if profile.get("approvalClaim") is not False:
+    status = profile.get("status")
+    if status not in {"pending_ci_artifact", "approved_artifact"}:
+        errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} has unsupported status {status!r}")
+    if status == "pending_ci_artifact" and profile.get("approvalClaim") is not False:
         errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} must not make an approval claim before artifact review")
+    if status == "approved_artifact":
+        if profile.get("approvalClaim") is not True:
+            errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} approved artifact must set approvalClaim=true")
+        for field in ("approvedRunId", "approvedRunUrl", "approvedHeadSha", "benchmarkArtifact"):
+            if not profile.get(field):
+                errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} approved artifact lacks {field}")
 
     workflow = profile.get("workflow")
     if not workflow:
@@ -269,6 +285,8 @@ def validate_ci_evidence_profiles(manifest: dict, errors: list[str]) -> None:
         errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} summaryArtifact mismatch")
     if profile.get("conformanceVectorArtifact") != "dotnet-mldsa-conformance-vector.json":
         errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} conformanceVectorArtifact mismatch")
+    if status == "approved_artifact" and profile.get("benchmarkArtifact") != "dotnet-mldsa-benchmark.json":
+        errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} benchmarkArtifact mismatch")
 
     required_summary = profile.get("requiredSummary", {})
     if required_summary.get("schema") != "pqauth-kit-windows-dotnet-mldsa-ci-evidence-v1":
@@ -277,6 +295,8 @@ def validate_ci_evidence_profiles(manifest: dict, errors: list[str]) -> None:
         errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} must require mldsaIsSupported=true")
     if required_summary.get("conformanceVectorGenerated") is not True:
         errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} must require conformanceVectorGenerated=true")
+    if status == "approved_artifact" and required_summary.get("benchmarkGenerated") is not True:
+        errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} must require benchmarkGenerated=true when approved")
     if set(required_summary.get("providerBackedTrustStateObjects", [])) != REQUIRED_OBJECTS:
         errors.append(f"{REQUIRED_WINDOWS_CI_PROFILE_ID} required trust-state objects mismatch")
 

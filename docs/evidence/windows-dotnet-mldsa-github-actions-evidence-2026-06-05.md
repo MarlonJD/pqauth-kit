@@ -4,7 +4,8 @@ Date: 2026-06-05
 
 Evidence id: `windows-dotnet-mldsa-github-actions-evidence-2026-06-05`
 
-Status: pending CI artifact.
+Status: approved for the Windows .NET ML-DSA-65 package-level trust-state
+profile.
 
 ## Owner Decision
 
@@ -27,18 +28,60 @@ Required summary file:
 Required conformance vector file:
 `dotnet-mldsa-conformance-vector.json`
 
+Required benchmark file:
+`dotnet-mldsa-benchmark.json`
+
 The summary must record:
 
 - schema `pqauth-kit-windows-dotnet-mldsa-ci-evidence-v1`
 - provider id `dotnet.system-security-cryptography.mldsa65`
 - `mldsaIsSupported=true`
 - `conformanceVectorGenerated=true`
+- `benchmarkGenerated=true`
 - provider-backed trust-state objects:
   - `account_identity`
   - `device_identity`
   - `roster_publish`
   - `prekey_bundle`
   - `safety_number`
+
+## Approved Artifact
+
+Remote run `26999599786` was downloaded and inspected on 2026-06-05.
+
+Run metadata:
+
+- URL: `https://github.com/MarlonJD/pqauth-kit/actions/runs/26999599786`
+- Head SHA: `24b700aa152ae446f9327ee3fef6a3a2df00baf6`
+- Event: `push`
+- Conclusion: `success`
+- Runner OS: Windows x64, `ImageOS=win25`,
+  `ImageVersion=20260525.149.1`
+- .NET SDK: `10.0.300`
+- .NET runtime host: `10.0.8`, commit `94ea82652c`
+
+Approved artifact contents:
+
+- `dotnet-mldsa-evidence-summary.json`
+  - `mldsaIsSupported=true`
+  - `conformanceVectorGenerated=true`
+  - `benchmarkGenerated=true`
+  - provider-backed trust-state objects:
+    `account_identity`, `device_identity`, `roster_publish`,
+    `prekey_bundle`, and `safety_number`
+- `dotnet-mldsa-conformance-vector.json`
+  - schema `pqauth-kit-mldsa-conformance-v1`
+  - five provider-backed cases
+  - operations: keygen, sign, verify, public-key export, private-key export,
+    public-key import, private-key import, signed-bytes mismatch rejection,
+    wrong-context rejection, malformed public-key rejection, and malformed
+    signature rejection
+- `dotnet-mldsa-benchmark.json`
+  - schema `pqauth-kit-benchmark-evidence-v1`
+  - report id `windows-dotnet-mldsa65-github-actions-benchmark-2026-06-05`
+  - operations: keygen, sign, verify, public-key export, private-key export,
+    private-key import, malformed public-key rejection, and malformed
+    signature rejection
 
 ## Reviewed Artifact
 
@@ -63,9 +106,8 @@ before the artifact can be accepted.
 
 ## Boundary
 
-This evidence path can approve the Windows .NET provider runtime/conformance
-gate only after a successful GitHub Actions run uploads the required artifact.
-Until then, `windows-dotnet-mldsa65-trust-state-v1` remains blocked.
+This evidence path approves the Windows .NET provider runtime/conformance and
+hosted-runner benchmark gate for the package-level trust-state profile.
 
-This does not approve Apple, Swift fallback, C# fallback, consuming repository
-storage, rollout, telemetry, or release decisions.
+This does not approve Apple iOS, Swift fallback, C# fallback, consuming
+repository storage, rollout, telemetry, or release decisions.

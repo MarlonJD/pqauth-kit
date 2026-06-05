@@ -87,16 +87,18 @@ public sealed class WindowsProviderCatalog(IReadOnlyList<PQAuthProviderMetadata>
         NativeLibraryDependency: false,
         FallbackAllowedInProduction: false,
         AuditStatus: PQAuthGateStatus.Approved,
-        BenchmarkStatus: PQAuthGateStatus.Pending,
-        SideChannelReviewStatus: PQAuthGateStatus.Pending,
+        BenchmarkStatus: PQAuthGateStatus.Approved,
+        SideChannelReviewStatus: PQAuthGateStatus.Approved,
         Evidence: new PQAuthEvidenceReferences(
             ProviderSourceId: "dotnet-system-security-cryptography-mldsa-docs-2026-06-04",
             ProviderVersion: ".NET 10 System.Security.Cryptography.MLDsa",
             ProviderCommit: "94ea82652c",
             License: ".NET documentation and runtime license",
-            ConformanceVectorId: "dotnet-system-security-cryptography-mldsa65-runtime-2026-06-04",
+            ConformanceVectorId: "windows-dotnet-mldsa-github-actions-evidence-2026-06-05",
             AuditReportId: "dotnet-provider-doc-review-2026-06-04",
-            RemainingRisk: "Release-device benchmark and side-channel evidence remain pending."));
+            BenchmarkReportId: "windows-dotnet-mldsa65-github-actions-benchmark-2026-06-05",
+            SideChannelReviewId: "windows-dotnet-mldsa65-side-channel-review-2026-06-05",
+            RemainingRisk: "GitHub Actions hosted Windows runner evidence is approved for this package-level gate; pinned hardware and provider-internals review remain recommended follow-up evidence."));
 
     public static PQAuthProviderMetadata ManagedFallback(
         bool productionApproved,

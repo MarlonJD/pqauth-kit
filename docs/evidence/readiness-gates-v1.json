@@ -305,12 +305,12 @@
       "providerVersion": ".NET 10 System.Security.Cryptography.MLDsa",
       "providerCommit": "94ea82652c",
       "license": ".NET documentation and runtime license",
-      "conformanceVectorId": null,
+      "conformanceVectorId": "windows-dotnet-mldsa-github-actions-evidence-2026-06-05",
       "auditReportId": "dotnet-provider-doc-review-2026-06-04",
-      "benchmarkReportId": null,
-      "sideChannelReviewId": null,
-      "productionReady": false,
-      "remainingRisk": "The local macOS .NET runtime exposes MLDsa APIs but reports IsSupported=false. GitHub Actions windows-latest evidence is accepted for Windows runtime support and trust-state conformance once the workflow uploads an artifact with mldsaIsSupported=true and all five provider-backed trust-state cases."
+      "benchmarkReportId": "windows-dotnet-mldsa65-github-actions-benchmark-2026-06-05",
+      "sideChannelReviewId": "windows-dotnet-mldsa65-side-channel-review-2026-06-05",
+      "productionReady": true,
+      "remainingRisk": "GitHub Actions hosted Windows runner evidence is approved for this package-level gate; pinned Windows hardware and .NET provider-internals review remain recommended follow-up evidence."
     }
   ],
   "fallbackRules": [
