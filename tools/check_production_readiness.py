@@ -255,7 +255,9 @@ def validate_ci_evidence_profiles(manifest: dict, errors: list[str]) -> None:
                 "windows-dotnet-mldsa-evidence",
                 "dotnet-mldsa-evidence-summary.json",
                 "dotnet-mldsa-conformance-vector.json",
+                "dotnet-mldsa-benchmark.json",
                 "providerBackedTrustStateObjects",
+                "benchmarkGenerated",
             ]
             for fragment in required_workflow_fragments:
                 if fragment not in workflow_text:

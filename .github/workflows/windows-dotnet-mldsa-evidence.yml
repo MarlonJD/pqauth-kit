@@ -77,11 +77,14 @@ jobs:
             mldsaIsSupported = $false
             conformanceVectorGenerated = $false
             conformanceVectorArtifact = $null
+            benchmarkGenerated = $false
+            benchmarkArtifact = $null
             providerBackedTrustStateObjects = @()
             unsupportedReason = $null
           }
 
           $vectorPath = "evidence/dotnet-mldsa-conformance-vector.json"
+          $benchmarkPath = "evidence/dotnet-mldsa-benchmark.json"
           $commandOutput = & dotnet run --no-build --project PQAuthKit.Tests.csproj --configuration Release -- --emit-conformance-vector 2>&1
 
           if ($LASTEXITCODE -eq 0) {
@@ -113,6 +116,17 @@ jobs:
             $summary["providerBackedTrustStateObjects"] = $objects
             $summary["algorithm"] = $vector.algorithm
             $summary["operations"] = $vector.operations
+
+            $benchmarkOutput = & dotnet run --no-build --project PQAuthKit.Tests.csproj --configuration Release -- --emit-benchmark 2>&1
+            if ($LASTEXITCODE -ne 0) {
+              throw "Unexpected ML-DSA benchmark generation failure: $benchmarkOutput"
+            }
+
+            $benchmarkOutput | Out-File -FilePath $benchmarkPath -Encoding utf8
+            $benchmark = Get-Content -Raw -Path $benchmarkPath | ConvertFrom-Json
+            $summary["benchmarkGenerated"] = $true
+            $summary["benchmarkArtifact"] = "dotnet-mldsa-benchmark.json"
+            $summary["benchmarkReportId"] = $benchmark.benchmarkReportId
           } else {
             $errorText = $commandOutput | Out-String
             $summary["unsupportedReason"] = $errorText.Trim()

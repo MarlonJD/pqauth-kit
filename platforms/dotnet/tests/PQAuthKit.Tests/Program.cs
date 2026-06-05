@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +8,12 @@ using PQAuthKit;
 if (args.Contains("--emit-conformance-vector"))
 {
     Console.WriteLine(GenerateMldsaConformanceVector());
+    return;
+}
+
+if (args.Contains("--emit-benchmark"))
+{
+    Console.WriteLine(GenerateMldsaBenchmark());
     return;
 }
 
@@ -417,6 +424,132 @@ static string GenerateMldsaConformanceVector()
     return JsonSerializer.Serialize(vector, new JsonSerializerOptions { WriteIndented = true });
 }
 
+static string GenerateMldsaBenchmark()
+{
+    if (!MLDsa.IsSupported)
+    {
+        throw new PlatformNotSupportedException("ML-DSA is not supported by this .NET runtime");
+    }
+
+    var contract = ServerVerifierContractEvidence.Load(Path.GetFullPath("../../vectors/hybrid-trust-state-v1.json"));
+    var provider = new DotNetMldsaProvider(PQAuthParameterSet.MLDsa65);
+    var metadata = PQAuthParameterSetMetadata.For(PQAuthParameterSet.MLDsa65);
+    var firstCase = contract.PositiveCases[0];
+    var signedBytes = Encoding.UTF8.GetBytes(firstCase.CanonicalBytesUtf8);
+    var context = Encoding.UTF8.GetBytes(firstCase.SignedBytesDomain);
+
+    using var key = MLDsa.GenerateKey(MLDsaAlgorithm.MLDsa65);
+    var publicKey = key.ExportMLDsaPublicKey();
+    var privateKey = key.ExportMLDsaPrivateKey();
+    var signature = key.SignData(signedBytes, context);
+
+    var benchmark = new
+    {
+        schema = "pqauth-kit-benchmark-evidence-v1",
+        benchmarkReportId = "windows-dotnet-mldsa65-github-actions-benchmark-2026-06-05",
+        providerId = "dotnet.system-security-cryptography.mldsa65",
+        benchmarkDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd"),
+        benchmarkCommand = "dotnet run --no-build --project PQAuthKit.Tests.csproj --configuration Release -- --emit-benchmark",
+        runner = new
+        {
+            os = Environment.GetEnvironmentVariable("RUNNER_OS") ?? RuntimeInformation.OSDescription,
+            architecture = Environment.GetEnvironmentVariable("RUNNER_ARCH") ?? RuntimeInformation.OSArchitecture.ToString(),
+            imageOS = Environment.GetEnvironmentVariable("ImageOS"),
+            imageVersion = Environment.GetEnvironmentVariable("ImageVersion"),
+            githubRunId = Environment.GetEnvironmentVariable("GITHUB_RUN_ID"),
+            githubSha = Environment.GetEnvironmentVariable("GITHUB_SHA")
+        },
+        dotnet = new
+        {
+            runtimeVersion = Environment.Version.ToString(),
+            osDescription = RuntimeInformation.OSDescription,
+            architecture = RuntimeInformation.OSArchitecture.ToString()
+        },
+        algorithm = new
+        {
+            name = "ML-DSA",
+            parameterSet = metadata.WireName,
+            privateKeyLength = metadata.PrivateKeyLength,
+            publicKeyLength = metadata.PublicKeyLength,
+            signatureLength = metadata.SignatureLength
+        },
+        providerBackedTrustStateObjects = contract.PositiveCases
+            .Select(testCase => testCase.TrustStateObject)
+            .ToArray(),
+        operations = new
+        {
+            keygen = Measure(20, () =>
+            {
+                using var generated = MLDsa.GenerateKey(MLDsaAlgorithm.MLDsa65);
+                _ = generated.ExportMLDsaPublicKey();
+            }),
+            sign = Measure(50, () =>
+            {
+                _ = key.SignData(signedBytes, context);
+            }),
+            verify = Measure(50, () =>
+            {
+                if (!key.VerifyData(signedBytes, signature, context))
+                {
+                    throw new InvalidOperationException("Expected ML-DSA verification to pass");
+                }
+            }),
+            publicKeyExport = Measure(50, () =>
+            {
+                _ = key.ExportMLDsaPublicKey();
+            }),
+            privateKeyExport = Measure(20, () =>
+            {
+                _ = key.ExportMLDsaPrivateKey();
+            }),
+            privateKeyImport = Measure(20, () =>
+            {
+                using var imported = MLDsa.ImportMLDsaPrivateKey(MLDsaAlgorithm.MLDsa65, privateKey);
+                _ = imported.ExportMLDsaPublicKey();
+            }),
+            malformedPublicKeyRejection = Measure(50, () =>
+            {
+                Assert.Throws<ArgumentException>(() => provider.VerifyData(signedBytes, signature, context, publicKey[..^1]));
+            }),
+            malformedSignatureRejection = Measure(50, () =>
+            {
+                Assert.Throws<ArgumentException>(() => provider.VerifyData(signedBytes, signature[..^1], context, publicKey));
+            })
+        },
+        remainingRisk = "GitHub Actions hosted-runner timing evidence; dedicated pinned Windows hardware and provider-internals side-channel review remain separate follow-up evidence."
+    };
+
+    return JsonSerializer.Serialize(benchmark, new JsonSerializerOptions { WriteIndented = true });
+}
+
+static BenchmarkStats Measure(int iterations, Action operation)
+{
+    var elapsedMilliseconds = new List<double>(iterations);
+    operation();
+
+    for (var index = 0; index < iterations; index += 1)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        operation();
+        stopwatch.Stop();
+        elapsedMilliseconds.Add(stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    elapsedMilliseconds.Sort();
+    return new BenchmarkStats(
+        iterations,
+        elapsedMilliseconds[0],
+        Percentile(elapsedMilliseconds, 0.50),
+        Percentile(elapsedMilliseconds, 0.95),
+        elapsedMilliseconds[^1]);
+}
+
+static double Percentile(IReadOnlyList<double> sortedValues, double percentile)
+{
+    var index = (int)Math.Ceiling(percentile * sortedValues.Count) - 1;
+    return sortedValues[Math.Clamp(index, 0, sortedValues.Count - 1)];
+}
+
 static int Count(string value, string needle) =>
     value.Split(needle, StringSplitOptions.None).Length - 1;
 
@@ -653,6 +786,13 @@ internal sealed class ServerVerifierContractEvidence
 }
 
 internal sealed record MldsaLengths(int PublicKeyLength, int SignatureLength);
+
+internal sealed record BenchmarkStats(
+    int Iterations,
+    double MinMs,
+    double P50Ms,
+    double P95Ms,
+    double MaxMs);
 
 internal sealed record TrustStateCase(
     string Id,
