@@ -215,15 +215,6 @@ def validate_profile_test(profile_id: str, test_path: Path, errors: list[str]) -
 
 def validate_blocked_profiles(manifest: dict, errors: list[str]) -> None:
     blocked = manifest.get("blockedProfiles", [])
-    blocked_by_id = {profile.get("id"): profile for profile in blocked}
-    required_blocked = {
-        "all-supported-platforms-trust-state-v1",
-        "apple-cryptokit-mldsa65-trust-state-v1",
-    }
-    missing = required_blocked - set(blocked_by_id)
-    if missing:
-        errors.append(f"missing blocked profiles: {sorted(missing)}")
-
     for profile in blocked:
         profile_id = profile.get("id", "<missing id>")
         if profile.get("status") != "blocked":
@@ -315,8 +306,12 @@ def validate_manifest(path: Path) -> list[str]:
     errors: list[str] = []
     if manifest.get("schema") != "pqauth-kit-production-readiness-v1":
         errors.append("production readiness schema mismatch")
-    if manifest.get("overallPackageStatus") != "scoped_production_ready":
-        errors.append("overallPackageStatus must remain scoped_production_ready")
+    overall_status = manifest.get("overallPackageStatus")
+    if overall_status not in {
+        "scoped_production_ready",
+        "all_supported_platforms_production_ready",
+    }:
+        errors.append("overallPackageStatus must be scoped or all-supported production ready")
 
     if set(manifest.get("requiredTrustStateObjects", [])) != REQUIRED_OBJECTS:
         errors.append("requiredTrustStateObjects mismatch")
@@ -326,6 +321,23 @@ def validate_manifest(path: Path) -> list[str]:
     validate_structural_vector(manifest, errors)
     providers = validate_readiness_manifest(manifest, errors)
     validate_approved_profiles(manifest, providers, errors)
+    if overall_status == "all_supported_platforms_production_ready":
+        approved_platforms = {
+            profile.get("platform")
+            for profile in manifest.get("productionProfiles", [])
+            if profile.get("status") == "approved"
+        }
+        required_platforms = {"android", "ios", "macos", "windows"}
+        if approved_platforms != required_platforms:
+            errors.append(f"all-supported status requires approved platforms {sorted(required_platforms)}")
+        disallowed_non_approvals = {
+            "all-supported-platform production readiness",
+            "Apple iOS production readiness",
+        }
+        does_not_approve = set(manifest.get("doesNotApprove", []))
+        stale = sorted(disallowed_non_approvals & does_not_approve)
+        if stale:
+            errors.append(f"all-supported status has stale non-approval claims: {stale}")
     validate_ci_evidence_profiles(manifest, errors)
     validate_blocked_profiles(manifest, errors)
     return errors
@@ -351,7 +363,7 @@ def main() -> int:
             print(f"FAIL: {error}", file=sys.stderr)
         return 1
 
-    print("PASS: pqauth-kit scoped production readiness evidence is internally consistent")
+    print("PASS: pqauth-kit production readiness evidence is internally consistent")
     return 0
 
 

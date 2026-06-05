@@ -15,8 +15,11 @@ covered the same provider-backed trust-state test used for the approved macOS
 package profile. This confirms the package compiles and the XCTest coverage can
 execute under the iOS simulator runtime.
 
-This evidence does not approve the iOS production profile because simulator
-execution is not release-device evidence.
+This evidence does not approve the iOS production profile by itself because
+simulator execution is not release-device evidence. The later release-device
+profile in
+`docs/evidence/apple-cryptokit-mldsa65-ios-release-device-trust-state-profile-2026-06-05.md`
+is the approving iOS production evidence.
 
 ## Commands
 
@@ -50,7 +53,8 @@ Tool-hosted testing is unavailable on device destinations. Select a host
 application for the test target, or use a simulator destination instead.
 ```
 
-The iOS package-level production profile remains blocked until a
-package-neutral iOS host application or equivalent release-device harness runs
-the provider-backed trust-state tests on a physical iOS device and records
-benchmark, lifecycle, and side-channel evidence.
+Before the release-device profile was added, the iOS package-level production
+profile remained blocked until a package-neutral iOS host application or
+equivalent release-device harness ran the provider-backed trust-state tests on
+a physical iOS device and recorded benchmark, lifecycle, and side-channel
+evidence.

@@ -156,6 +156,23 @@ final class PQAuthVectorFixtureTests: XCTestCase {
         )
         XCTAssertEqual(cryptoKit["productionReady"] as? Bool, true)
 
+        let cryptoKitIOS = try XCTUnwrap(providers.first { provider in
+            provider["providerId"] as? String == "apple.cryptokit.mldsa65.ios"
+        })
+        XCTAssertEqual(
+            cryptoKitIOS["conformanceVectorId"] as? String,
+            "apple-cryptokit-mldsa65-ios-release-device-trust-state-profile-2026-06-05"
+        )
+        XCTAssertEqual(
+            cryptoKitIOS["benchmarkReportId"] as? String,
+            "apple-cryptokit-mldsa65-ios-release-device-benchmark-2026-06-05"
+        )
+        XCTAssertEqual(
+            cryptoKitIOS["sideChannelReviewId"] as? String,
+            "apple-cryptokit-mldsa65-ios-side-channel-review-2026-06-05"
+        )
+        XCTAssertEqual(cryptoKitIOS["productionReady"] as? Bool, true)
+
         let benchmark = try loadEvidenceFixture("apple-cryptokit-mldsa65-macos-benchmark-2026-06-04.json")
         XCTAssertEqual(benchmark["schema"] as? String, "pqauth-kit-benchmark-evidence-v1")
         let operations = try XCTUnwrap(benchmark["operations"] as? [String: Any])

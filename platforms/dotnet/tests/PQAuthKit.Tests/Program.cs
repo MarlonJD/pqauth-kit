@@ -273,8 +273,10 @@ static void ValidatesReadinessEvidenceManifests()
     Assert.True(macOS.GetProperty("productionReady").GetBoolean());
 
     var iOS = ProviderById(providers, "apple.cryptokit.mldsa65.ios");
-    Assert.Equal(JsonValueKind.Null, iOS.GetProperty("conformanceVectorId").ValueKind);
-    Assert.False(iOS.GetProperty("productionReady").GetBoolean());
+    Assert.Equal("apple-cryptokit-mldsa65-ios-release-device-trust-state-profile-2026-06-05", iOS.GetProperty("conformanceVectorId").GetString());
+    Assert.Equal("apple-cryptokit-mldsa65-ios-release-device-benchmark-2026-06-05", iOS.GetProperty("benchmarkReportId").GetString());
+    Assert.Equal("apple-cryptokit-mldsa65-ios-side-channel-review-2026-06-05", iOS.GetProperty("sideChannelReviewId").GetString());
+    Assert.True(iOS.GetProperty("productionReady").GetBoolean());
 
     var windows = ProviderById(providers, "dotnet.system-security-cryptography.mldsa65");
     Assert.Equal("windows-dotnet-mldsa-github-actions-evidence-2026-06-05", windows.GetProperty("conformanceVectorId").GetString());

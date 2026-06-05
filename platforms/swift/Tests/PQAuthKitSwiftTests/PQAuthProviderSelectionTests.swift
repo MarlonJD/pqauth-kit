@@ -121,9 +121,9 @@ final class PQAuthProviderSelectionTests: XCTestCase {
         XCTAssertTrue(PQAuthReadinessGate.blockers(for: provider).contains("required_evidence_missing"))
     }
 
-    func testNativeProviderSelectionDoesNotEqualProductionReadiness() throws {
+    func testUnapprovedNativeProviderSelectionDoesNotEqualProductionReadiness() throws {
         let selected = try PQAuthProviderCatalog.apple(platform: .iOS).selectProvider(
-            policy: PQAuthProviderSelectionPolicy(platform: .iOS),
+            policy: PQAuthProviderSelectionPolicy(platform: .iOS, requestedParameterSet: .mldsa87),
             runtime: PQAuthRuntimeCapabilities(
                 osMajorVersion: 26,
                 cryptoKitMLDSA65Available: true,
@@ -135,7 +135,7 @@ final class PQAuthProviderSelectionTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(selected.providerId, "apple.cryptokit.mldsa65.ios")
+        XCTAssertEqual(selected.providerId, "apple.cryptokit.mldsa87.ios")
         XCTAssertFalse(selected.isProductionReady)
         XCTAssertTrue(PQAuthReadinessGate.blockers(for: selected).contains("benchmark_status_not_approved"))
         XCTAssertTrue(PQAuthReadinessGate.blockers(for: selected).contains("side_channel_review_status_not_approved"))

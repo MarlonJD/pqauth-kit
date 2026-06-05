@@ -20,8 +20,8 @@ low-frequency hybrid trust-state objects:
 - `safety_number`
 
 It does not approve Secure Enclave non-exportable-key production use, Swift
-fallback production use, Windows production use, iOS production use, or
-all-supported-platform production readiness.
+fallback production use, or consuming-application storage, migration, rollout,
+telemetry, and release approval.
 
 ## Runtime
 
@@ -91,4 +91,5 @@ Results:
 - Provider-internals side-channel properties remain under Apple's provider
   boundary; this package evidence approves the package boundary, API use, input
   validation, fail-closed behavior, and logging boundary only.
-- iOS and Windows profile approval remain separate gates.
+- iOS and Windows profile approvals are recorded in their own evidence
+  documents.

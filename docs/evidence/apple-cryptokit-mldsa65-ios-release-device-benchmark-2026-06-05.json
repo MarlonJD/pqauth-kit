@@ -1,0 +1,87 @@
+{
+    "schema": "pqauth-kit-benchmark-evidence-v1",
+    "version": 1,
+    "benchmarkReportId": "apple-cryptokit-mldsa65-ios-release-device-benchmark-2026-06-05",
+    "providerId": "apple.cryptokit.mldsa65.ios",
+    "benchmarkDate": "2026-06-05",
+    "benchmarkCommand": "xcrun devicectl device process launch --device 02329A9F-84C9-5499-9EBF-074EFCB45F7C --console --terminate-existing --timeout 60 com.pqauthkit.deviceharness",
+    "deviceModel": "iPhone 17 (iPhone18,3)",
+    "deviceName": "Burak iPhone'u",
+    "osRuntime": "iOS 26.5.1",
+    "packageCommit": "cc13378f5789eaca960f987aff1d1febfbf07232",
+    "harness": "platforms/swift/DeviceHarness/PQAuthKitIOSDeviceHarness.xcodeproj",
+    "providerBackedTrustStateObjects": [
+        "account_identity",
+        "device_identity",
+        "prekey_bundle",
+        "roster_publish",
+        "safety_number"
+    ],
+    "operations": {
+        "keygen": {
+            "iterations": 5,
+            "maxMs": 1.1069774627685547,
+            "minMs": 0.4919767379760742,
+            "p50Ms": 0.7989406585693359,
+            "p95Ms": 1.1069774627685547
+        },
+        "malformedPublicKeyRejection": {
+            "iterations": 5,
+            "maxMs": 0.0050067901611328125,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.0050067901611328125
+        },
+        "malformedSignatureRejection": {
+            "iterations": 5,
+            "maxMs": 0.0019073486328125,
+            "minMs": 0.00095367431640625,
+            "p50Ms": 0.00095367431640625,
+            "p95Ms": 0.0019073486328125
+        },
+        "privateKeyExport": {
+            "iterations": 5,
+            "maxMs": 0.00095367431640625,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.00095367431640625
+        },
+        "privateKeyImport": {
+            "iterations": 5,
+            "maxMs": 0.37300586700439453,
+            "minMs": 0.16200542449951172,
+            "p50Ms": 0.2589225769042969,
+            "p95Ms": 0.37300586700439453
+        },
+        "publicKeyExport": {
+            "iterations": 5,
+            "maxMs": 0.0010728836059570312,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.0010728836059570312
+        },
+        "publicKeyImport": {
+            "iterations": 5,
+            "maxMs": 0.011920928955078125,
+            "minMs": 0,
+            "p50Ms": 0.0010728836059570312,
+            "p95Ms": 0.011920928955078125
+        },
+        "sign": {
+            "iterations": 5,
+            "maxMs": 1.0150671005249023,
+            "minMs": 0.6409883499145508,
+            "p50Ms": 0.8519887924194336,
+            "p95Ms": 1.0150671005249023
+        },
+        "verify": {
+            "iterations": 5,
+            "maxMs": 0.050902366638183594,
+            "minMs": 0.048041343688964844,
+            "p50Ms": 0.048995018005371094,
+            "p95Ms": 0.050902366638183594
+        }
+    },
+    "memoryNotes": "Allocation profiling was not captured in this device timing pass.",
+    "remainingRisk": "Package-boundary release-device timing evidence only; Apple provider internals, power profiling, and larger device matrices remain separate follow-up evidence."
+}

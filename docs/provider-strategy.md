@@ -76,9 +76,9 @@ Policy:
   parameter set and the provider stays stable for the operation.
 - macOS CryptoKit ML-DSA-65 is approved for package-level trust-state use after
   release-hardware SwiftPM evidence over all five trust-state objects.
-- iOS Simulator Swift package coverage exists, but iOS production readiness
-  remains blocked until a package-neutral host app or equivalent
-  release-device harness runs the provider-backed tests on physical hardware.
+- iOS CryptoKit ML-DSA-65 is approved for package-level trust-state use after
+  a package-neutral host app ran the provider-backed tests on a physical
+  iOS 26.5.1 release device.
 - Select Secure Enclave ML-DSA only when non-exportable key lifecycle is
   compatible with account recovery, migration, and multi-device E2EE.
 - Below OS 26, use only an audited Swift fallback when explicitly enabled by
